@@ -2,8 +2,6 @@ package ustc.nodb.properties;
 
 import org.junit.Test;
 
-import static org.junit.Assert.*;
-
 public class GlobalConfigTest {
 
     @Test
@@ -15,5 +13,11 @@ public class GlobalConfigTest {
     public void testGetCompressionRate() {
         GlobalConfig config;
         System.out.println(GlobalConfig.getCompressionRate() == 100);
+    }
+
+    @Test
+    public void testGraphPath() {
+        GlobalConfig config;
+        System.out.println(GlobalConfig.getInputGraphPath());
     }
 }
