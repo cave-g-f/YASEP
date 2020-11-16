@@ -5,13 +5,11 @@ import ustc.nodb.core.Edge;
 import ustc.nodb.core.Graph;
 import ustc.nodb.properties.GlobalConfig;
 
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashSet;
 
 public class GraphSketch {
 
-    private final ArrayList<Edge> edgeList;
     private final int vCount;
     private final int eCount;
     private final byte[][] adjMatrix;
@@ -42,11 +40,10 @@ public class GraphSketch {
             vertexHashTable.add(new HashSet<Integer>());
         }
         this.graph = graph;
-        this.edgeList = graph.getEdgeList();
     }
 
     public void setupAdjMatrix(int hashFuncIndex) {
-        for (Edge edge : edgeList) {
+        for (Edge edge : graph.getEdgeList()) {
             int src = edge.getSrcVId();
             int dest = edge.getDestVId();
             int srcHash = Hashing.sha256().hashInt(src).hashCode();
@@ -84,5 +81,9 @@ public class GraphSketch {
         }
 
         return ajdMatrixStr.toString() + hashTableStr.toString();
+    }
+
+    public byte[][] getAdjMatrix() {
+        return adjMatrix;
     }
 }

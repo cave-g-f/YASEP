@@ -19,4 +19,11 @@ public class GraphSketchTest {
         graphSketch.setupAdjMatrix(1);
         System.out.println(graphSketch);
     }
+
+    @Test
+    public void testGetAdjMatrix(){
+        graphSketch.setupAdjMatrix(1);
+        byte[][] adj = graphSketch.getAdjMatrix();
+        System.out.println(graphSketch.getAdjMatrix().hashCode());
+    }
 }
