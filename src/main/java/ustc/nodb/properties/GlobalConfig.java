@@ -15,6 +15,9 @@ public class GlobalConfig {
     private static final int vCount;
     private static final int eCount;
 
+    // Graph partition config
+    private static final byte partitionNum;
+
     static {
         InputStream inputStream = GlobalConfig.class.getResourceAsStream("/project.properties");
         Properties properties = new Properties();
@@ -28,6 +31,7 @@ public class GlobalConfig {
         inputGraphPath = properties.getProperty("inputGraphPath");
         vCount = Integer.parseInt(properties.getProperty("vCount"));
         eCount = Integer.parseInt(properties.getProperty("eCount"));
+        partitionNum = Byte.parseByte(properties.getProperty("partitionNum"));
     }
 
     public static byte getHashNum() {
@@ -48,5 +52,13 @@ public class GlobalConfig {
 
     public static int getECount() {
         return eCount;
+    }
+
+    public static byte getPartitionNum() {
+        return partitionNum;
+    }
+
+    public static int getMaxClusterVolume() {
+        return eCount / partitionNum;
     }
 }

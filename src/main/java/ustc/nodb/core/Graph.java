@@ -36,7 +36,7 @@ public class Graph {
     }
 
     private void addEdge(int srcVId, int destVId) {
-        Edge edge = new Edge(srcVId, destVId);
+        Edge edge = new Edge(srcVId, destVId, 0);
         edgeList.add(edge);
     }
 

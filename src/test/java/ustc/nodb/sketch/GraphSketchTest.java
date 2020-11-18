@@ -16,14 +16,14 @@ public class GraphSketchTest {
 
     @Test
     public void testAdjMatrix(){
-        graphSketch.setupAdjMatrix(1);
+        graphSketch.setupAdjMatrix(2);
         System.out.println(graphSketch);
     }
 
     @Test
     public void testGetAdjMatrix(){
         graphSketch.setupAdjMatrix(1);
-        byte[][] adj = graphSketch.getAdjMatrix();
+        int[][] adj = graphSketch.getAdjMatrix();
         System.out.println(graphSketch.getAdjMatrix().hashCode());
     }
 }
