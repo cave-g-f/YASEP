@@ -1,5 +1,6 @@
 package ustc.nodb.cluster;
 
+import org.checkerframework.checker.units.qual.A;
 import ustc.nodb.properties.GlobalConfig;
 import ustc.nodb.sketch.GraphSketch;
 
@@ -15,8 +16,7 @@ public class StreamCluster {
     // clusterId1 = clusterId2 save inner, otherwise save cut
     private final HashMap<Integer, HashMap<Integer, Integer>> innerAndCutEdge;
     private final GraphSketch sketch;
-    private int[] clusterId;
-    private int clusterNum;
+    private final ArrayList<Integer> clusterList;
     private final int maxVolume;
 
     public StreamCluster(GraphSketch sketch) {
@@ -25,6 +25,7 @@ public class StreamCluster {
         this.sketch = sketch;
         this.maxVolume = GlobalConfig.getMaxClusterVolume();
         this.innerAndCutEdge = new HashMap<>();
+        this.clusterList = new ArrayList<>();
     }
 
     private void combineCluster(int srcVid, int destVid) {
@@ -72,12 +73,10 @@ public class StreamCluster {
 
     private void setUpIndex() {
         // set cluster id index
-        clusterNum = volume.size();
-        clusterId = new int[volume.size()];
         Iterator<Integer> iterator = volume.keySet().iterator();
         int i = 0;
         while (iterator.hasNext()) {
-            clusterId[i] = iterator.next();
+            this.clusterList.add(iterator.next());
         }
     }
 
@@ -99,12 +98,16 @@ public class StreamCluster {
         }
     }
 
-    public int getClusterNum() {
-        return clusterNum;
+    public ArrayList<Integer> getClusterList() {
+        return clusterList;
     }
 
     public HashMap<Integer, HashMap<Integer, Integer>> getInnerAndCutEdge() {
         return innerAndCutEdge;
+    }
+
+    public int getEdgeWeight(int cluster1, int cluster2){
+        return innerAndCutEdge.get(cluster1).get(cluster2);
     }
 
     @Override

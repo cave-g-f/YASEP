@@ -18,6 +18,9 @@ public class GlobalConfig {
     // Graph partition config
     private static final byte partitionNum;
 
+    // Graph cluster packing config
+    private static final float alpha;
+
     static {
         InputStream inputStream = GlobalConfig.class.getResourceAsStream("/project.properties");
         Properties properties = new Properties();
@@ -32,6 +35,7 @@ public class GlobalConfig {
         vCount = Integer.parseInt(properties.getProperty("vCount"));
         eCount = Integer.parseInt(properties.getProperty("eCount"));
         partitionNum = Byte.parseByte(properties.getProperty("partitionNum"));
+        alpha = Float.parseFloat(properties.getProperty("alpha"));
     }
 
     public static byte getHashNum() {
@@ -60,5 +64,9 @@ public class GlobalConfig {
 
     public static int getMaxClusterVolume() {
         return eCount / partitionNum;
+    }
+
+    public static float getAlpha() {
+        return alpha;
     }
 }
