@@ -16,7 +16,7 @@ public class GlobalConfig {
     private static final int eCount;
 
     // Graph partition config
-    private static final byte partitionNum;
+    private static final int partitionNum;
 
     // Graph cluster packing config
     private static final float alpha;
@@ -34,7 +34,7 @@ public class GlobalConfig {
         inputGraphPath = properties.getProperty("inputGraphPath");
         vCount = Integer.parseInt(properties.getProperty("vCount"));
         eCount = Integer.parseInt(properties.getProperty("eCount"));
-        partitionNum = Byte.parseByte(properties.getProperty("partitionNum"));
+        partitionNum = Integer.parseInt(properties.getProperty("partitionNum"));
         alpha = Float.parseFloat(properties.getProperty("alpha"));
     }
 
@@ -58,7 +58,7 @@ public class GlobalConfig {
         return eCount;
     }
 
-    public static byte getPartitionNum() {
+    public static int getPartitionNum() {
         return partitionNum;
     }
 

@@ -14,7 +14,8 @@ public class ClusterPackGame {
     private final ArrayList<HashSet<Integer>> invertedPartitionIndex; // key: partition value: cluster list
     private final ArrayList<Integer> clusterList;
     private final StreamCluster streamCluster;
-    private double beta;
+    private int cutEdge = 0;
+    private double beta = 0.0;
 
     public ClusterPackGame(StreamCluster streamCluster) {
         this.clusterPartition = new HashMap<>();
@@ -35,10 +36,10 @@ public class ClusterPackGame {
         }
 
         double cutPart = 0.0, sizePart = 0.0;
-        for(Integer cluster1 : clusterList){
-            for(Integer cluster2 : clusterList){
-                if(cluster1.equals(cluster2)) sizePart += streamCluster.getEdgeWeight(cluster1, cluster1);
-                else cutPart += streamCluster.getEdgeWeight(cluster1, cluster2);
+        for (Integer cluster1 : clusterList) {
+            for (Integer cluster2 : clusterList) {
+                if (cluster1.equals(cluster2)) sizePart += streamCluster.getEdgeNum(cluster1, cluster1);
+                else cutPart += streamCluster.getEdgeNum(cluster1, cluster2);
             }
         }
 
@@ -50,18 +51,29 @@ public class ClusterPackGame {
         double loadPart = 0.0, edgeCutPart = 0.0;
 
         for (Integer otherCluster : clusterList) {
-            if (clusterPartition.get(otherCluster) == partition || otherCluster == clusterId){
-                loadPart += streamCluster.getEdgeWeight(otherCluster, otherCluster);
+            if (clusterPartition.get(otherCluster) == partition || otherCluster == clusterId) {
+                loadPart += streamCluster.getEdgeNum(otherCluster, otherCluster);
                 continue;
             }
-            edgeCutPart += streamCluster.getEdgeWeight(clusterId, otherCluster)
-                    + streamCluster.getEdgeWeight(otherCluster, clusterId);
+            edgeCutPart += streamCluster.getEdgeNum(clusterId, otherCluster)
+                    + streamCluster.getEdgeNum(otherCluster, clusterId);
         }
 
         double alpha = GlobalConfig.getAlpha(), k = GlobalConfig.getPartitionNum();
-        double m = streamCluster.getEdgeWeight(clusterId, clusterId);
+        double m = streamCluster.getEdgeNum(clusterId, clusterId);
 
         return alpha * beta / k * loadPart * m + (1 - alpha) / 2 * edgeCutPart;
+    }
+
+    private void computeCutEdge() {
+        this.cutEdge = 0;
+        for (Integer cluster1 : clusterList) {
+            for (Integer cluster2 : clusterList) {
+                if(cluster1.equals(cluster2) || clusterPartition.get(cluster1).equals(clusterPartition.get(cluster2)))
+                    continue;
+                this.cutEdge += streamCluster.getEdgeNum(cluster1, cluster2);
+            }
+        }
     }
 
     public void startGame() {
@@ -77,13 +89,13 @@ public class ClusterPackGame {
 
                 for (int j = 0; j < GlobalConfig.getPartitionNum(); j++) {
                     double cost = computeCost(clusterId, j);
-                    if(cost < minCost){
+                    if (cost < minCost) {
                         minCost = cost;
                         minPartition = j;
                     }
                 }
 
-                if(minPartition != clusterPartition.get(clusterId)){
+                if (minPartition != clusterPartition.get(clusterId)) {
                     finish = true;
                     invertedPartitionIndex.get(clusterPartition.get(clusterId)).remove(clusterId);
                     clusterPartition.put(clusterId, minPartition);
@@ -91,9 +103,15 @@ public class ClusterPackGame {
                 }
             }
         }
+
+        computeCutEdge();
     }
 
     public ArrayList<HashSet<Integer>> getInvertedPartitionIndex() {
         return invertedPartitionIndex;
+    }
+
+    public int getCutEdge() {
+        return cutEdge;
     }
 }

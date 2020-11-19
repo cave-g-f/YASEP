@@ -106,7 +106,7 @@ public class StreamCluster {
         return innerAndCutEdge;
     }
 
-    public int getEdgeWeight(int cluster1, int cluster2){
+    public int getEdgeNum(int cluster1, int cluster2){
         return innerAndCutEdge.get(cluster1).get(cluster2);
     }
 

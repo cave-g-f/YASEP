@@ -77,11 +77,11 @@ public class GameTaskTest {
         for(StreamCluster cluster : streamClusters){
             HashMap<Integer, HashMap<Integer, Integer>> map = cluster.getInnerAndCutEdge();
 
-            map.forEach((k1, v1)->{
-                v1.forEach((k2, v2)->{
-                    System.out.println(k1.toString() + " : " + k2.toString() + " : " + v2.toString());
-                });
-            });
+//            map.forEach((k1, v1)->{
+//                v1.forEach((k2, v2)->{
+//                    System.out.println(k1.toString() + " : " + k2.toString() + " : " + v2.toString());
+//                });
+//            });
         }
     }
 
@@ -114,6 +114,7 @@ public class GameTaskTest {
                 });
                 System.out.println();
             });
+            System.out.println("cut edge: " + game.getCutEdge());
         }
     }
 
