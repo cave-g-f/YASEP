@@ -17,8 +17,8 @@ public class SketchTask implements Callable<GraphSketch> {
 
     @Override
     public GraphSketch call() throws Exception {
-        GraphSketch graphSketch = new GraphSketch(graph);
-        graphSketch.setupAdjMatrix(taskId);
+        GraphSketch graphSketch = new GraphSketch(graph, taskId);
+        graphSketch.setupAdjMatrix();
         return graphSketch;
     }
 }

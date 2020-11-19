@@ -114,4 +114,8 @@ public class ClusterPackGame {
     public int getCutEdge() {
         return cutEdge;
     }
+
+    public int getClusterPartition(int clusterId){
+        return clusterPartition.get(clusterId);
+    }
 }

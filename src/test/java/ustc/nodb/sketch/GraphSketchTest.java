@@ -11,18 +11,18 @@ public class GraphSketchTest {
     public GraphSketchTest() {
         graph = new Graph();
         graph.readGraphFromFile();
-        graphSketch = new GraphSketch(graph);
+        graphSketch = new GraphSketch(graph, 0);
     }
 
     @Test
     public void testAdjMatrix(){
-        graphSketch.setupAdjMatrix(2);
+        graphSketch.setupAdjMatrix();
         System.out.println(graphSketch);
     }
 
     @Test
     public void testGetAdjMatrix(){
-        graphSketch.setupAdjMatrix(1);
+        graphSketch.setupAdjMatrix();
         int[][] adj = graphSketch.getAdjMatrix();
         System.out.println(graphSketch.getAdjMatrix().hashCode());
     }

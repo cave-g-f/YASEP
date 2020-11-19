@@ -1,6 +1,5 @@
 package ustc.nodb.cluster;
 
-import org.checkerframework.checker.units.qual.A;
 import ustc.nodb.properties.GlobalConfig;
 import ustc.nodb.sketch.GraphSketch;
 
@@ -123,5 +122,9 @@ public class StreamCluster {
         }
 
         return volumeStr.toString() + clusterStr.toString();
+    }
+
+    public int getClusterId(int vId){
+        return cluster[vId];
     }
 }

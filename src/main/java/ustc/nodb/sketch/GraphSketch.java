@@ -16,6 +16,7 @@ public class GraphSketch {
     private final ArrayList<HashSet<Integer>> vertexHashTable;
     private final Graph graph;
     private final int[] degree;
+    private int hashFuncIndex;
     private final int[][] hashFunc = {
             {13, 17},
             {17, 23},
@@ -30,7 +31,7 @@ public class GraphSketch {
             {43, 19},
     };
 
-    public GraphSketch(Graph graph) {
+    public GraphSketch(Graph graph, int hashFuncIndex) {
         this.vCount = (short) Math.round(Math.sqrt(graph.getECount() / GlobalConfig.getCompressionRate()));
         adjMatrix = new int[this.vCount][this.vCount];
         vertexHashTable = new ArrayList<>(this.vCount);
@@ -39,16 +40,20 @@ public class GraphSketch {
         }
         this.graph = graph;
         degree = new int[this.vCount];
+        this.hashFuncIndex = hashFuncIndex;
     }
 
-    public void setupAdjMatrix(int hashFuncIndex) {
+    public int hashVertex(int vId){
+        int hashCode = Hashing.sha256().hashInt(vId).hashCode();
+        return Math.floorMod(hashCode * this.hashFunc[hashFuncIndex][0] + this.hashFunc[hashFuncIndex][1], this.vCount);
+    }
+
+    public void setupAdjMatrix() {
         for (Edge edge : graph.getEdgeList()) {
             int src = edge.getSrcVId();
             int dest = edge.getDestVId();
-            int srcHash = Hashing.sha256().hashInt(src).hashCode();
-            srcHash = Math.floorMod(srcHash * this.hashFunc[hashFuncIndex][0] + this.hashFunc[hashFuncIndex][1], this.vCount);
-            int destHash = Hashing.sha256().hashInt(dest).hashCode();
-            destHash = Math.floorMod(destHash * this.hashFunc[hashFuncIndex][0] + this.hashFunc[hashFuncIndex][1], this.vCount);
+            int srcHash = hashVertex(src);
+            int destHash = hashVertex(dest);
 
             vertexHashTable.get(srcHash).add(src);
             vertexHashTable.get(destHash).add(dest);
