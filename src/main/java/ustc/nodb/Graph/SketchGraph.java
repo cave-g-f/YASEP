@@ -1,20 +1,23 @@
-package ustc.nodb.sketch;
+package ustc.nodb.Graph;
 
 import com.google.common.hash.Hashing;
 import ustc.nodb.core.Edge;
-import ustc.nodb.core.Graph;
 import ustc.nodb.properties.GlobalConfig;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.TreeSet;
 
-public class GraphSketch {
+public class SketchGraph implements Graph{
 
     private final int vCount;
     private final int[][] adjMatrix;
+    private final ArrayList<Edge> edgeList;
     private final ArrayList<HashSet<Integer>> vertexHashTable;
-    private final Graph graph;
     private final int[] degree;
     private int hashFuncIndex;
     private final int[][] hashFunc = {
@@ -31,16 +34,16 @@ public class GraphSketch {
             {43, 19},
     };
 
-    public GraphSketch(Graph graph, int hashFuncIndex) {
-        this.vCount = (short) Math.round(Math.sqrt(graph.getECount() / GlobalConfig.getCompressionRate()));
+    public SketchGraph(int hashFuncIndex) {
+        this.vCount = (short) Math.round(Math.sqrt(GlobalConfig.getECount() / GlobalConfig.getCompressionRate()));
         adjMatrix = new int[this.vCount][this.vCount];
         vertexHashTable = new ArrayList<>(this.vCount);
         for (int i = 0; i < this.vCount; i++) {
             vertexHashTable.add(new HashSet<Integer>());
         }
-        this.graph = graph;
         degree = new int[this.vCount];
         this.hashFuncIndex = hashFuncIndex;
+        edgeList = new ArrayList<>();
     }
 
     public int hashVertex(int vId){
@@ -48,19 +51,42 @@ public class GraphSketch {
         return Math.floorMod(hashCode * this.hashFunc[hashFuncIndex][0] + this.hashFunc[hashFuncIndex][1], this.vCount);
     }
 
-    public void setupAdjMatrix() {
-        for (Edge edge : graph.getEdgeList()) {
-            int src = edge.getSrcVId();
-            int dest = edge.getDestVId();
-            int srcHash = hashVertex(src);
-            int destHash = hashVertex(dest);
+    @Override
+    public void readGraphFromFile() {
+        try {
+            InputStream inputStream = OriginGraph.class.getResourceAsStream(GlobalConfig.getInputGraphPath());
+            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
 
-            vertexHashTable.get(srcHash).add(src);
-            vertexHashTable.get(destHash).add(dest);
-            adjMatrix[srcHash][destHash]++;
-            degree[srcHash]++;
-            if(srcHash != destHash) degree[destHash]++;
+            String line;
+            while ((line = bufferedReader.readLine()) != null) {
+                if (line.startsWith("#")) continue;
+                String[] edgeValues = line.split("\t");
+                int srcVid = Integer.parseInt(edgeValues[0]);
+                int destVid = Integer.parseInt(edgeValues[1]);
+                addEdge(srcVid, destVid);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
+
+        for(int i = 0; i < this.vCount; i++){
+            for(int j = 0; j < this.vCount; j++){
+                if(adjMatrix[i][j] == 0) continue;
+                edgeList.add(new Edge(i, j, adjMatrix[i][j]));
+            }
+        }
+    }
+
+    @Override
+    public void addEdge(int srcVId, int destVId) {
+        int srcHash = hashVertex(srcVId);
+        int destHash = hashVertex(destVId);
+
+        vertexHashTable.get(srcHash).add(srcVId);
+        vertexHashTable.get(destHash).add(destVId);
+        adjMatrix[srcHash][destHash]++;
+        degree[srcHash]++;
+        if(srcHash != destHash) degree[destHash]++;
     }
 
     @Override
@@ -104,11 +130,21 @@ public class GraphSketch {
         return vCount;
     }
 
+    @Override
+    public int getECount() {
+        return edgeList.size();
+    }
+
     public int getDegree(int vid) {
         return degree[vid];
     }
 
     public int findWeight(int i, int j){
         return adjMatrix[i][j];
+    }
+
+    @Override
+    public ArrayList<Edge> getEdgeList() {
+        return edgeList;
     }
 }

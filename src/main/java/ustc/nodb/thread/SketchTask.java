@@ -1,24 +1,22 @@
 package ustc.nodb.thread;
 
-import ustc.nodb.core.Graph;
-import ustc.nodb.sketch.GraphSketch;
+import ustc.nodb.Graph.OriginGraph;
+import ustc.nodb.Graph.SketchGraph;
 
 import java.util.concurrent.Callable;
 
-public class SketchTask implements Callable<GraphSketch> {
+public class SketchTask implements Callable<SketchGraph> {
 
-    private final Graph graph;
     private final int taskId;
 
-    public SketchTask(Graph graph, int taskId) {
-        this.graph = graph;
+    public SketchTask(int taskId) {
         this.taskId = taskId;
     }
 
     @Override
-    public GraphSketch call() throws Exception {
-        GraphSketch graphSketch = new GraphSketch(graph, taskId);
-        graphSketch.setupAdjMatrix();
-        return graphSketch;
+    public SketchGraph call() throws Exception {
+        SketchGraph sketchGraph = new SketchGraph(taskId);
+        sketchGraph.readGraphFromFile();
+        return sketchGraph;
     }
 }

@@ -2,28 +2,27 @@ package ustc.nodb.partitioner;
 
 import ustc.nodb.cluster.StreamCluster;
 import ustc.nodb.core.Edge;
-import ustc.nodb.core.Graph;
+import ustc.nodb.Graph.OriginGraph;
 import ustc.nodb.game.ClusterPackGame;
 import ustc.nodb.properties.GlobalConfig;
-import ustc.nodb.sketch.GraphSketch;
+import ustc.nodb.Graph.SketchGraph;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 
 public class TcmSp implements PartitionStrategy {
 
-    private final Graph graph;
-    private final GraphSketch graphSketch;
+    private final OriginGraph originGraph;
+    private final SketchGraph sketchGraph;
     private final StreamCluster streamCluster;
     private final ClusterPackGame clusterPackGame;
     private final ArrayList<HashSet<Edge>> partitionTable;
     private final HashMap<Integer, HashSet<Integer>> replicateTable;
 
-    public TcmSp(Graph graph, GraphSketch graphSketch, StreamCluster streamCluster, ClusterPackGame clusterPackGame) {
-        this.graph = graph;
-        this.graphSketch = graphSketch;
+    public TcmSp(OriginGraph originGraph, SketchGraph sketchGraph, StreamCluster streamCluster, ClusterPackGame clusterPackGame) {
+        this.originGraph = originGraph;
+        this.sketchGraph = sketchGraph;
         this.streamCluster = streamCluster;
         this.clusterPackGame = clusterPackGame;
         partitionTable = new ArrayList<>();
@@ -35,11 +34,11 @@ public class TcmSp implements PartitionStrategy {
     @Override
     public void performStep() {
 
-        for (Edge edge : graph.getEdgeList()) {
+        for (Edge edge : originGraph.getEdgeList()) {
             int src = edge.getSrcVId();
             int dest = edge.getDestVId();
-            int srcHash = graphSketch.hashVertex(src);
-            int destHash = graphSketch.hashVertex(dest);
+            int srcHash = sketchGraph.hashVertex(src);
+            int destHash = sketchGraph.hashVertex(dest);
             int srcPartition = clusterPackGame.getClusterPartition(streamCluster.getClusterId(srcHash));
             int destPartition = clusterPackGame.getClusterPartition(streamCluster.getClusterId(destHash));
             int edgePartition = -1;

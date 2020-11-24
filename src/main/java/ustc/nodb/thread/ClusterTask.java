@@ -1,16 +1,16 @@
 package ustc.nodb.thread;
 
 import ustc.nodb.cluster.StreamCluster;
-import ustc.nodb.sketch.GraphSketch;
+import ustc.nodb.Graph.SketchGraph;
 
 import java.util.concurrent.Callable;
 
 public class ClusterTask implements Callable<StreamCluster> {
 
-    private final GraphSketch sketch;
+    private final SketchGraph sketch;
     private final int taskId;
 
-    public ClusterTask(GraphSketch sketch, int taskId) {
+    public ClusterTask(SketchGraph sketch, int taskId) {
         this.sketch = sketch;
         this.taskId = taskId;
     }

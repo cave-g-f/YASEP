@@ -1,11 +1,10 @@
 package ustc.nodb.cluster;
 
 import ustc.nodb.properties.GlobalConfig;
-import ustc.nodb.sketch.GraphSketch;
+import ustc.nodb.Graph.SketchGraph;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Hashtable;
 import java.util.Iterator;
 
 public class StreamCluster {
@@ -14,11 +13,11 @@ public class StreamCluster {
     private final HashMap<Integer, Integer> volume;
     // clusterId1 = clusterId2 save inner, otherwise save cut
     private final HashMap<Integer, HashMap<Integer, Integer>> innerAndCutEdge;
-    private final GraphSketch sketch;
+    private final SketchGraph sketch;
     private final ArrayList<Integer> clusterList;
     private final int maxVolume;
 
-    public StreamCluster(GraphSketch sketch) {
+    public StreamCluster(SketchGraph sketch) {
         this.cluster = new int[sketch.getVCount()];
         this.volume = new HashMap<>();
         this.sketch = sketch;
