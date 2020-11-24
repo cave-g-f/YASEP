@@ -9,6 +9,8 @@ public class GlobalConfig {
     // Graph Sketch Config
     private static final byte hashNum;
     private static final short compressionRate;
+    private static final int k;
+    private static final int l;
 
     // Graph env config
     private static final String inputGraphPath;
@@ -36,6 +38,8 @@ public class GlobalConfig {
         eCount = Integer.parseInt(properties.getProperty("eCount"));
         partitionNum = Integer.parseInt(properties.getProperty("partitionNum"));
         alpha = Float.parseFloat(properties.getProperty("alpha"));
+        k = Integer.parseInt(properties.getProperty("k"));
+        l = Integer.parseInt(properties.getProperty("l"));
     }
 
     public static byte getHashNum() {
@@ -63,10 +67,18 @@ public class GlobalConfig {
     }
 
     public static int getMaxClusterVolume() {
-        return eCount / partitionNum / 4;
+        return vCount / vCount;
     }
 
     public static float getAlpha() {
         return alpha;
+    }
+
+    public static int getK() {
+        return k;
+    }
+
+    public static int getL() {
+        return l;
     }
 }

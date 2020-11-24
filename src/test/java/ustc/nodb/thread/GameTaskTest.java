@@ -70,9 +70,9 @@ public class GameTaskTest {
             }
         }
 
-        for(StreamCluster cluster : streamClusters){
-            System.out.println(cluster);
-        }
+//        for(StreamCluster cluster : streamClusters){
+//            System.out.println(cluster);
+//        }
 
         for(StreamCluster cluster : streamClusters){
             HashMap<Integer, HashMap<Integer, Integer>> map = cluster.getInnerAndCutEdge();
@@ -108,13 +108,17 @@ public class GameTaskTest {
 
         for(ClusterPackGame game : clusterPackGames){
             ArrayList<HashSet<Integer>> partition = game.getInvertedPartitionIndex();
-            partition.forEach(v->{
-                v.forEach(cluster->{
-                    System.out.print(cluster.toString() + " ");
-                });
-                System.out.println();
-            });
+//            partition.forEach(v->{
+//                v.forEach(cluster->{
+//                    System.out.print(cluster.toString() + " ");
+//                });
+//                System.out.println();
+//            });
             System.out.println("cut edge: " + game.getCutEdge());
+
+            for(HashSet<Integer> clusters : partition){
+                System.out.println("num : " + clusters.size());
+            }
         }
     }
 

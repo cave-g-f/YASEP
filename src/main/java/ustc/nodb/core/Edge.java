@@ -3,7 +3,7 @@ package ustc.nodb.core;
 public class Edge implements Comparable<Edge>{
     private final int srcVId;
     private final int destVId;
-    private final int weight;
+    private int weight;
 
     public Edge(int srcVId, int destVId, int weight) {
         this.srcVId = srcVId;
@@ -19,10 +19,16 @@ public class Edge implements Comparable<Edge>{
         return destVId;
     }
 
+    public int getWeight() {
+        return weight;
+    }
+
+    public void addWeight(){
+        weight++;
+    }
+
     @Override
     public int compareTo(Edge edge) {
-        if(this.weight < edge.weight) return -1;
-        else if(this.weight > edge.weight) return 1;
-        else return 0;
+        return Integer.compare(this.weight, edge.getWeight());
     }
 }

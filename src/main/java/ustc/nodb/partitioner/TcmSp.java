@@ -49,7 +49,7 @@ public class TcmSp implements PartitionStrategy {
             if (srcPartition == destPartition)
                 edgePartition = srcPartition;
             else {
-                if (graphSketch.getDegree(srcHash) > graphSketch.getDegree(destHash)) {
+                if (partitionTable.get(srcPartition).size() > partitionTable.get(destPartition).size()) {
                     edgePartition = destPartition;
                     srcPartition = destPartition;
                 } else {
@@ -71,4 +71,19 @@ public class TcmSp implements PartitionStrategy {
         }
         return sum / GlobalConfig.getVCount();
     }
+
+    public double getLoadBalance(){
+        double averageLoad = 0.0;
+        double sigma = 0.0;
+        for(HashSet<Edge> edgeSet : partitionTable){
+            averageLoad += edgeSet.size();
+        }
+        averageLoad /= GlobalConfig.getPartitionNum();
+        for(HashSet<Edge> edgeSet : partitionTable){
+            sigma += Math.pow(edgeSet.size() - averageLoad, 2);
+        }
+        sigma /= GlobalConfig.getPartitionNum();
+        return Math.sqrt(sigma)/averageLoad;
+    }
+
 }

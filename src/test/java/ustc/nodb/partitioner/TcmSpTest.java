@@ -140,7 +140,8 @@ public class TcmSpTest {
 
         tcmSp.performStep();
 
-        System.out.println(tcmSp.getReplicateFactor());
+        System.out.println("replicate factor: " + tcmSp.getReplicateFactor());
+        System.out.println("relative edge load balance: " + tcmSp.getLoadBalance());
     }
 
 }

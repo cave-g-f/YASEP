@@ -3,6 +3,7 @@ package ustc.nodb.core;
 import ustc.nodb.properties.GlobalConfig;
 
 import java.io.*;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 
 public class Graph {
