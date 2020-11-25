@@ -69,7 +69,7 @@ public class ClusterPackGame {
         this.cutEdge = 0;
         for (Integer cluster1 : clusterList) {
             for (Integer cluster2 : clusterList) {
-                if(cluster1.equals(cluster2) || clusterPartition.get(cluster1).equals(clusterPartition.get(cluster2)))
+                if (cluster1.equals(cluster2) || clusterPartition.get(cluster1).equals(clusterPartition.get(cluster2)))
                     continue;
                 this.cutEdge += streamCluster.getEdgeNum(cluster1, cluster2);
             }
@@ -83,6 +83,7 @@ public class ClusterPackGame {
 
         while (!finish) {
             finish = false;
+            long startTime = System.currentTimeMillis();
             for (Integer clusterId : clusterList) {
                 double minCost = Double.MAX_VALUE;
                 int minPartition = clusterPartition.get(clusterId);
@@ -102,6 +103,8 @@ public class ClusterPackGame {
                     invertedPartitionIndex.get(minPartition).add(clusterId);
                 }
             }
+            long endTime = System.currentTimeMillis();
+            System.out.println(endTime - startTime);
         }
 
         computeCutEdge();
@@ -115,7 +118,7 @@ public class ClusterPackGame {
         return cutEdge;
     }
 
-    public int getClusterPartition(int clusterId){
+    public int getClusterPartition(int clusterId) {
         return clusterPartition.get(clusterId);
     }
 }

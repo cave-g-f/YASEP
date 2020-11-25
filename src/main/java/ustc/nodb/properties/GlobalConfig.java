@@ -67,7 +67,7 @@ public class GlobalConfig {
     }
 
     public static int getMaxClusterVolume() {
-        return vCount / vCount;
+        return eCount / partitionNum;
     }
 
     public static float getAlpha() {

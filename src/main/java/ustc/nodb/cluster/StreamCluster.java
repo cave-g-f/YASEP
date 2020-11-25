@@ -1,5 +1,7 @@
 package ustc.nodb.cluster;
 
+import ustc.nodb.Graph.Graph;
+import ustc.nodb.core.Edge;
 import ustc.nodb.properties.GlobalConfig;
 import ustc.nodb.Graph.SketchGraph;
 
@@ -13,14 +15,14 @@ public class StreamCluster {
     private final HashMap<Integer, Integer> volume;
     // clusterId1 = clusterId2 save inner, otherwise save cut
     private final HashMap<Integer, HashMap<Integer, Integer>> innerAndCutEdge;
-    private final SketchGraph sketch;
+    private final Graph graph;
     private final ArrayList<Integer> clusterList;
     private final int maxVolume;
 
-    public StreamCluster(SketchGraph sketch) {
-        this.cluster = new int[sketch.getVCount()];
+    public StreamCluster(Graph graph) {
+        this.cluster = new int[graph.getVCount()];
+        this.graph = graph;
         this.volume = new HashMap<>();
-        this.sketch = sketch;
         this.maxVolume = GlobalConfig.getMaxClusterVolume();
         this.innerAndCutEdge = new HashMap<>();
         this.clusterList = new ArrayList<>();
@@ -32,9 +34,9 @@ public class StreamCluster {
         int minVid = (volume.get(cluster[srcVid]) < volume.get(cluster[destVid]) ? srcVid : destVid);
         int maxVid = (srcVid == minVid ? destVid : srcVid);
 
-        if ((volume.get(cluster[maxVid]) + sketch.getDegree(minVid)) <= maxVolume) {
-            volume.put(cluster[maxVid], volume.get(cluster[maxVid]) + sketch.getDegree(minVid));
-            volume.put(cluster[minVid], volume.get(cluster[minVid]) - sketch.getDegree(minVid));
+        if ((volume.get(cluster[maxVid]) + graph.getDegree(minVid)) <= maxVolume) {
+            volume.put(cluster[maxVid], volume.get(cluster[maxVid]) + graph.getDegree(minVid));
+            volume.put(cluster[minVid], volume.get(cluster[minVid]) - graph.getDegree(minVid));
             if (volume.get(cluster[minVid]) == 0) volume.remove(cluster[minVid]);
             cluster[minVid] = cluster[maxVid];
         }
@@ -44,27 +46,27 @@ public class StreamCluster {
 
         int clusterID = 1;
 
-        for (int i = 0; i < sketch.getVCount(); i++) {
-            for (int j = i + 1; j < sketch.getVCount(); j++) {
+        for (Edge edge : graph.getEdgeList()) {
 
-                if (sketch.findWeight(i, j) == 0) continue;
+            int src = edge.getSrcVId();
+            int dest = edge.getDestVId();
 
-                // allocate cluster
-                if (cluster[i] == 0) cluster[i] = clusterID++;
-                if (cluster[j] == 0) cluster[j] = clusterID++;
+            // allocate cluster
+            if (cluster[src] == 0) cluster[src] = clusterID++;
+            if (cluster[dest] == 0) cluster[dest] = clusterID++;
 
-                // update volume
-                if (!volume.containsKey(cluster[i])) {
-                    volume.put(cluster[i], sketch.getDegree(i));
-                }
-                if (!volume.containsKey(cluster[j])) {
-                    volume.put(cluster[j], sketch.getDegree(j));
-                }
-
-                // combine cluster
-                combineCluster(i, j);
+            // update volume
+            if (!volume.containsKey(cluster[src])) {
+                volume.put(cluster[src], graph.getDegree(src));
             }
+            if (!volume.containsKey(cluster[dest])) {
+                volume.put(cluster[dest], graph.getDegree(dest));
+            }
+
+            // combine cluster
+            combineCluster(src, dest);
         }
+
         setUpIndex();
         computeEdgeInfo();
     }
@@ -80,19 +82,19 @@ public class StreamCluster {
 
     private void computeEdgeInfo() {
         // compute inner and cut edge
-        for(int i = 0; i < sketch.getVCount(); i++){
-            for(int j = 0; j < sketch.getVCount(); j++){
-                if(sketch.findWeight(i, j) == 0) continue;
+        for (Edge edge : graph.getEdgeList()) {
 
-                if(!innerAndCutEdge.containsKey(cluster[i]))
-                    innerAndCutEdge.put(cluster[i], new HashMap<>());
+            int src = edge.getSrcVId();
+            int dest = edge.getDestVId();
 
-                if(!innerAndCutEdge.get(cluster[i]).containsKey(cluster[j]))
-                    innerAndCutEdge.get(cluster[i]).put(cluster[j], 0);
+            if (!innerAndCutEdge.containsKey(cluster[src]))
+                innerAndCutEdge.put(cluster[src], new HashMap<>());
 
-                int oldValue = innerAndCutEdge.get(cluster[i]).get(cluster[j]);
-                innerAndCutEdge.get(cluster[i]).put(cluster[j], oldValue + sketch.findWeight(i, j));
-            }
+            if (!innerAndCutEdge.get(cluster[src]).containsKey(cluster[dest]))
+                innerAndCutEdge.get(cluster[src]).put(cluster[dest], 0);
+
+            int oldValue = innerAndCutEdge.get(cluster[src]).get(cluster[dest]);
+            innerAndCutEdge.get(cluster[src]).put(cluster[dest], oldValue + edge.getWeight());
         }
     }
 
@@ -104,7 +106,9 @@ public class StreamCluster {
         return innerAndCutEdge;
     }
 
-    public int getEdgeNum(int cluster1, int cluster2){
+    public int getEdgeNum(int cluster1, int cluster2) {
+        if(!innerAndCutEdge.containsKey(cluster1) || !innerAndCutEdge.get(cluster1).containsKey(cluster2)) return 0;
+
         return innerAndCutEdge.get(cluster1).get(cluster2);
     }
 
@@ -116,14 +120,18 @@ public class StreamCluster {
             volumeStr.append("cluster ").append(k).append(" volume: ").append(v).append("\n");
         });
 
-        for (int i = 0; i < sketch.getVCount(); i++) {
+        for (int i = 0; i < graph.getVCount(); i++) {
             clusterStr.append("vid : ").append(i).append(" cluster: ").append(cluster[i]).append("\n");
         }
 
         return volumeStr.toString() + clusterStr.toString();
     }
 
-    public int getClusterId(int vId){
+    public int getClusterId(int vId) {
         return cluster[vId];
+    }
+
+    public int getVertexNum(int cluster){
+        return volume.get(cluster);
     }
 }

@@ -1,5 +1,6 @@
 package ustc.nodb.partitioner;
 
+import ustc.nodb.Graph.Graph;
 import ustc.nodb.cluster.StreamCluster;
 import ustc.nodb.core.Edge;
 import ustc.nodb.Graph.OriginGraph;
@@ -13,16 +14,14 @@ import java.util.HashSet;
 
 public class TcmSp implements PartitionStrategy {
 
-    private final OriginGraph originGraph;
-    private final SketchGraph sketchGraph;
+    private final Graph originGraph;
     private final StreamCluster streamCluster;
     private final ClusterPackGame clusterPackGame;
     private final ArrayList<HashSet<Edge>> partitionTable;
     private final HashMap<Integer, HashSet<Integer>> replicateTable;
 
-    public TcmSp(OriginGraph originGraph, SketchGraph sketchGraph, StreamCluster streamCluster, ClusterPackGame clusterPackGame) {
+    public TcmSp(Graph originGraph, StreamCluster streamCluster, ClusterPackGame clusterPackGame) {
         this.originGraph = originGraph;
-        this.sketchGraph = sketchGraph;
         this.streamCluster = streamCluster;
         this.clusterPackGame = clusterPackGame;
         partitionTable = new ArrayList<>();
@@ -37,10 +36,8 @@ public class TcmSp implements PartitionStrategy {
         for (Edge edge : originGraph.getEdgeList()) {
             int src = edge.getSrcVId();
             int dest = edge.getDestVId();
-            int srcHash = sketchGraph.hashVertex(src);
-            int destHash = sketchGraph.hashVertex(dest);
-            int srcPartition = clusterPackGame.getClusterPartition(streamCluster.getClusterId(srcHash));
-            int destPartition = clusterPackGame.getClusterPartition(streamCluster.getClusterId(destHash));
+            int srcPartition = clusterPackGame.getClusterPartition(streamCluster.getClusterId(src));
+            int destPartition = clusterPackGame.getClusterPartition(streamCluster.getClusterId(dest));
             int edgePartition = -1;
 
             if (!replicateTable.containsKey(src)) replicateTable.put(src, new HashSet<>());

@@ -41,7 +41,7 @@ public class OriginGraph implements Graph{
 
     @Override
     public void addEdge(int srcVId, int destVId) {
-        Edge edge = new Edge(srcVId, destVId, 0);
+        Edge edge = new Edge(srcVId, destVId, 1);
         degree[srcVId]++;
         degree[destVId]++;
         edgeList.add(edge);

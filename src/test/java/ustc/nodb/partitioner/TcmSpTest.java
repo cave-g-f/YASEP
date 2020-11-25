@@ -132,7 +132,7 @@ public class TcmSpTest {
     public void testTcmSp() throws ExecutionException, InterruptedException {
         testPackGameTask();
 
-        TcmSp tcmSp = new TcmSp(originGraph, sketchGraphs.get(selectId), streamClusters.get(selectId), clusterPackGames.get(selectId));
+        TcmSp tcmSp = new TcmSp(originGraph, streamClusters.get(selectId), clusterPackGames.get(selectId));
 
         tcmSp.performStep();
 

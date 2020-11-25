@@ -1,6 +1,7 @@
 package ustc.nodb.thread;
 
 import org.junit.Test;
+import ustc.nodb.Graph.Graph;
 import ustc.nodb.cluster.StreamCluster;
 import ustc.nodb.Graph.OriginGraph;
 import ustc.nodb.game.ClusterPackGame;
@@ -14,15 +15,9 @@ import java.util.concurrent.*;
 
 public class GameTaskTest {
 
-    OriginGraph originGraph;
     ArrayList<SketchGraph> sketchGraphs = new ArrayList<>();
     ArrayList<StreamCluster> streamClusters = new ArrayList<>();
     ArrayList<ClusterPackGame> clusterPackGames = new ArrayList<>();
-
-    public GameTaskTest() {
-        originGraph = new OriginGraph();
-        originGraph.readGraphFromFile();
-    }
 
     public void testSketchTask() throws InterruptedException, ExecutionException {
         ExecutorService taskPool = Executors.newCachedThreadPool();
@@ -46,6 +41,7 @@ public class GameTaskTest {
 //            System.out.println(sketch);
 //        }
     }
+
 
     public void testClusterTask() throws ExecutionException, InterruptedException {
 
