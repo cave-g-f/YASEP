@@ -22,6 +22,7 @@ public class GlobalConfig {
 
     // Graph cluster packing config
     private static final float alpha;
+    private static final int batchSize;
 
     static {
         InputStream inputStream = GlobalConfig.class.getResourceAsStream("/project.properties");
@@ -40,6 +41,7 @@ public class GlobalConfig {
         alpha = Float.parseFloat(properties.getProperty("alpha"));
         k = Integer.parseInt(properties.getProperty("k"));
         l = Integer.parseInt(properties.getProperty("l"));
+        batchSize = Integer.parseInt(properties.getProperty("batchSize"));
     }
 
     public static byte getHashNum() {
@@ -80,5 +82,9 @@ public class GlobalConfig {
 
     public static int getL() {
         return l;
+    }
+
+    public static int getBatchSize() {
+        return batchSize;
     }
 }

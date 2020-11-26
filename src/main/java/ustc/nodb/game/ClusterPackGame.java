@@ -21,10 +21,10 @@ public class ClusterPackGame {
     private int cutEdge = 0;
     private double beta = 0.0;
 
-    public ClusterPackGame(StreamCluster streamCluster) {
+    public ClusterPackGame(StreamCluster streamCluster, ArrayList<Integer> clusterList) {
         this.clusterPartition = new HashMap<>();
         this.streamCluster = streamCluster;
-        this.clusterList = streamCluster.getClusterList();
+        this.clusterList = clusterList;
         this.invertedPartitionIndex = new ArrayList<>();
         for (int i = 0; i < GlobalConfig.getPartitionNum(); i++) {
             this.invertedPartitionIndex.add(new HashSet<>());
@@ -49,12 +49,12 @@ public class ClusterPackGame {
             for (Integer cluster2 : clusterList) {
                 if (!cluster1.equals(cluster2)) cutPart += streamCluster.getEdgeNum(cluster1, cluster2);
                 if (!clusterPartition.get(cluster1).equals(clusterPartition.get(cluster2)))
-                    cutCost += streamCluster.getEdgeNum(cluster1, cluster2);
+                    cutCost += streamCluster.getEdgeNum(cluster1, cluster2) + streamCluster.getEdgeNum(cluster2, cluster1);
             }
             cutCostValue.put(cluster1, cutCost);
         }
 
-        this.beta = GlobalConfig.getPartitionNum() * GlobalConfig.getPartitionNum() * cutPart / sizePart * sizePart;
+        this.beta = GlobalConfig.getPartitionNum() * GlobalConfig.getPartitionNum() * cutPart / (sizePart * sizePart);
     }
 
     private double computeCost(int clusterId, int partition) {
@@ -71,10 +71,12 @@ public class ClusterPackGame {
             // update cut edge cost value
             for(Integer otherCluster : invertedPartitionIndex.get(old_partition)){
                 if(otherCluster == clusterId) continue;
-                edgeCutPart += streamCluster.getEdgeNum(clusterId, otherCluster);
+                edgeCutPart += streamCluster.getEdgeNum(clusterId, otherCluster)
+                        + streamCluster.getEdgeNum(otherCluster, clusterId);
             }
             for(Integer otherCluster : invertedPartitionIndex.get(partition)){
-                edgeCutPart -= streamCluster.getEdgeNum(clusterId, otherCluster);
+                edgeCutPart -= streamCluster.getEdgeNum(clusterId, otherCluster)
+                        - streamCluster.getEdgeNum(otherCluster, clusterId);
             }
         }
 
@@ -100,9 +102,9 @@ public class ClusterPackGame {
         initGame();
         boolean finish = false;
 
+        long startTime = System.currentTimeMillis();
         while (!finish) {
             finish = true;
-            long startTime = System.currentTimeMillis();
             for (Integer clusterId : clusterList) {
                 double minCost = Double.MAX_VALUE;
                 int minPartition = clusterPartition.get(clusterId);
@@ -127,23 +129,23 @@ public class ClusterPackGame {
                     for(Integer otherCluster : invertedPartitionIndex.get(clusterPartition.get(clusterId))){
                         double cutCost1 = streamCluster.getEdgeNum(clusterId, otherCluster);
                         double cutCost2 = streamCluster.getEdgeNum(otherCluster, clusterId);
-                        cutCostValue.put(clusterId, cutCostValue.get(clusterId) + cutCost1);
-                        cutCostValue.put(otherCluster, cutCostValue.get(otherCluster) + cutCost2);
+                        cutCostValue.put(clusterId, cutCostValue.get(clusterId) + cutCost1 + cutCost2);
+                        cutCostValue.put(otherCluster, cutCostValue.get(otherCluster) + cutCost2 + cutCost1);
                     }
                     for(Integer otherCluster : invertedPartitionIndex.get(minPartition)){
                         double cutCost1 = streamCluster.getEdgeNum(clusterId, otherCluster);
                         double cutCost2 = streamCluster.getEdgeNum(otherCluster, clusterId);
-                        cutCostValue.put(clusterId, cutCostValue.get(clusterId) - cutCost1);
-                        cutCostValue.put(otherCluster, cutCostValue.get(otherCluster) - cutCost2);
+                        cutCostValue.put(clusterId, cutCostValue.get(clusterId) - cutCost1 - cutCost2);
+                        cutCostValue.put(otherCluster, cutCostValue.get(otherCluster) - cutCost2 - cutCost1);
                     }
 
                     clusterPartition.put(clusterId, minPartition);
                     invertedPartitionIndex.get(minPartition).add(clusterId);
                 }
             }
-            long endTime = System.currentTimeMillis();
-            System.out.println("round time " + (endTime - startTime) + " ms");
         }
+        long endTime = System.currentTimeMillis();
+        System.out.println("round time : " + (endTime - startTime) + " ms");
 
         computeCutEdge();
     }
@@ -156,7 +158,7 @@ public class ClusterPackGame {
         return cutEdge;
     }
 
-    public int getClusterPartition(int clusterId) {
-        return clusterPartition.get(clusterId);
+    public HashMap<Integer, Integer> getClusterPartition() {
+        return clusterPartition;
     }
 }

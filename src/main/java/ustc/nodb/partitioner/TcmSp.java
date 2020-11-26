@@ -16,14 +16,14 @@ public class TcmSp implements PartitionStrategy {
 
     private final Graph originGraph;
     private final StreamCluster streamCluster;
-    private final ClusterPackGame clusterPackGame;
     private final ArrayList<HashSet<Edge>> partitionTable;
     private final HashMap<Integer, HashSet<Integer>> replicateTable;
+    private final HashMap<Integer, Integer> clusterPartition;
 
-    public TcmSp(Graph originGraph, StreamCluster streamCluster, ClusterPackGame clusterPackGame) {
+    public TcmSp(Graph originGraph, StreamCluster streamCluster, HashMap<Integer, Integer> clusterPartition) {
         this.originGraph = originGraph;
         this.streamCluster = streamCluster;
-        this.clusterPackGame = clusterPackGame;
+        this.clusterPartition = clusterPartition;
         partitionTable = new ArrayList<>();
         for (int i = 0; i < GlobalConfig.getPartitionNum(); i++)
             partitionTable.add(new HashSet<>());
@@ -36,8 +36,8 @@ public class TcmSp implements PartitionStrategy {
         for (Edge edge : originGraph.getEdgeList()) {
             int src = edge.getSrcVId();
             int dest = edge.getDestVId();
-            int srcPartition = clusterPackGame.getClusterPartition(streamCluster.getClusterId(src));
-            int destPartition = clusterPackGame.getClusterPartition(streamCluster.getClusterId(dest));
+            int srcPartition = clusterPartition.get(streamCluster.getClusterId(src));
+            int destPartition = clusterPartition.get(streamCluster.getClusterId(dest));
             int edgePartition = -1;
 
             if (!replicateTable.containsKey(src)) replicateTable.put(src, new HashSet<>());

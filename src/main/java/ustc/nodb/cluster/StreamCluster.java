@@ -5,9 +5,7 @@ import ustc.nodb.core.Edge;
 import ustc.nodb.properties.GlobalConfig;
 import ustc.nodb.Graph.SketchGraph;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
+import java.util.*;
 
 public class StreamCluster {
 
@@ -72,11 +70,11 @@ public class StreamCluster {
     }
 
     private void setUpIndex() {
-        // set cluster id index
-        Iterator<Integer> iterator = volume.keySet().iterator();
-        int i = 0;
-        while (iterator.hasNext()) {
-            this.clusterList.add(iterator.next());
+        // sort the volume of the cluster
+        List<HashMap.Entry<Integer, Integer>> sortList = new ArrayList<HashMap.Entry<Integer, Integer>>(volume.entrySet());
+        Collections.sort(sortList, (v1, v2) -> (v2.getValue() - v1.getValue()));
+        for(int i = 0; i < sortList.size(); i++){
+            this.clusterList.add(sortList.get(i).getKey());
         }
     }
 
@@ -131,7 +129,7 @@ public class StreamCluster {
         return cluster[vId];
     }
 
-    public int getVertexNum(int cluster){
-        return volume.get(cluster);
+    public HashMap<Integer, Integer> getVolume() {
+        return volume;
     }
 }
