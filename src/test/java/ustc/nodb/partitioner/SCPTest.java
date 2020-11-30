@@ -32,8 +32,7 @@ public class SCPTest {
         streamCluster.startSteamCluster();
 
         // parallel game theory
-        ExecutorService taskPool = new ThreadPoolExecutor(0, 1000,
-                60L, TimeUnit.SECONDS, new SynchronousQueue<Runnable>());
+        ExecutorService taskPool = Executors.newFixedThreadPool(10);
         CompletionService<HashMap<Integer, Integer>> completionService = new ExecutorCompletionService<>(taskPool);
 
         int clusterSize = streamCluster.getClusterList().size();

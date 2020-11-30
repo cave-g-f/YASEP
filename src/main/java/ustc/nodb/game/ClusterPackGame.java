@@ -102,7 +102,7 @@ public class ClusterPackGame {
         initGame();
         boolean finish = false;
 
-        long startTime = System.currentTimeMillis();
+//        long startTime = System.currentTimeMillis();
         while (!finish) {
             finish = true;
             for (Integer clusterId : clusterList) {
@@ -144,8 +144,8 @@ public class ClusterPackGame {
                 }
             }
         }
-        long endTime = System.currentTimeMillis();
-        System.out.println("round time : " + (endTime - startTime) + " ms");
+//        long endTime = System.currentTimeMillis();
+//        System.out.println("round time : " + (endTime - startTime) + " ms");
 
         computeCutEdge();
     }
