@@ -14,6 +14,7 @@ public class GlobalConfig {
 
     // Graph env config
     private static final String inputGraphPath;
+    private static final String outputGraphPath;
     private static final int vCount;
     private static final int eCount;
 
@@ -23,6 +24,7 @@ public class GlobalConfig {
     // Graph cluster packing config
     private static final float alpha;
     private static final int batchSize;
+    private static final int threads;
 
     static {
         InputStream inputStream = GlobalConfig.class.getResourceAsStream("/project.properties");
@@ -42,6 +44,8 @@ public class GlobalConfig {
         k = Integer.parseInt(properties.getProperty("k"));
         l = Integer.parseInt(properties.getProperty("l"));
         batchSize = Integer.parseInt(properties.getProperty("batchSize"));
+        threads = Integer.parseInt(properties.getProperty("threads"));
+        outputGraphPath = properties.getProperty("outputGraphPath");
     }
 
     public static byte getHashNum() {
@@ -69,7 +73,7 @@ public class GlobalConfig {
     }
 
     public static int getMaxClusterVolume() {
-        return eCount / partitionNum;
+        return eCount / getPartitionNum() / 10;
     }
 
     public static float getAlpha() {
@@ -86,5 +90,13 @@ public class GlobalConfig {
 
     public static int getBatchSize() {
         return batchSize;
+    }
+
+    public static int getThreads() {
+        return threads;
+    }
+
+    public static String getOutputGraphPath() {
+        return outputGraphPath;
     }
 }
