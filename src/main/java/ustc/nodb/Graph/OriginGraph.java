@@ -6,7 +6,7 @@ import ustc.nodb.properties.GlobalConfig;
 import java.io.*;
 import java.util.ArrayList;
 
-public class OriginGraph implements Graph{
+public class OriginGraph implements Graph {
 
     private final ArrayList<Edge> edgeList;
     private final int vCount;
@@ -65,5 +65,10 @@ public class OriginGraph implements Graph{
     @Override
     public int getDegree(int vid) {
         return degree[vid];
+    }
+
+    @Override
+    public void clear() {
+        edgeList.clear();
     }
 }

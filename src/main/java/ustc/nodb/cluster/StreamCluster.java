@@ -72,7 +72,7 @@ public class StreamCluster {
     private void setUpIndex() {
         // sort the volume of the cluster
         List<HashMap.Entry<Integer, Integer>> sortList = new ArrayList<HashMap.Entry<Integer, Integer>>(volume.entrySet());
-        Collections.sort(sortList, (v1, v2) -> (v2.getValue() - v1.getValue()));
+//        Collections.sort(sortList, (v1, v2) -> (v2.getValue() - v1.getValue()));
         for(int i = 0; i < sortList.size(); i++){
             this.clusterList.add(sortList.get(i).getKey());
         }

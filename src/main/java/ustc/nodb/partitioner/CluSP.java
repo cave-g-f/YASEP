@@ -8,11 +8,12 @@ import ustc.nodb.game.ClusterPackGame;
 import ustc.nodb.properties.GlobalConfig;
 import ustc.nodb.Graph.SketchGraph;
 
+import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 
-public class TcmSp implements PartitionStrategy {
+public class CluSP implements PartitionStrategy {
 
     private final Graph originGraph;
     private final StreamCluster streamCluster;
@@ -20,7 +21,7 @@ public class TcmSp implements PartitionStrategy {
     private final HashMap<Integer, HashSet<Integer>> replicateTable;
     private final HashMap<Integer, Integer> clusterPartition;
 
-    public TcmSp(Graph originGraph, StreamCluster streamCluster, HashMap<Integer, Integer> clusterPartition) {
+    public CluSP(Graph originGraph, StreamCluster streamCluster, HashMap<Integer, Integer> clusterPartition) {
         this.originGraph = originGraph;
         this.streamCluster = streamCluster;
         this.clusterPartition = clusterPartition;
@@ -60,7 +61,14 @@ public class TcmSp implements PartitionStrategy {
         }
     }
 
-    public double getReplicateFactor(){
+    @Override
+    public void clear(){
+        partitionTable.clear();
+        replicateTable.clear();
+    }
+
+    @Override
+    public double getReplicateFactor() {
         double sum = 0.0;
         for (Integer integer : replicateTable.keySet()) {
             sum += replicateTable.get(integer).size();
@@ -68,18 +76,38 @@ public class TcmSp implements PartitionStrategy {
         return sum / GlobalConfig.getVCount();
     }
 
-    public double getLoadBalance(){
-        double averageLoad = 0.0;
-        double sigma = 0.0;
-        for(HashSet<Edge> edgeSet : partitionTable){
-            averageLoad += edgeSet.size();
+    @Override
+    public double getLoadBalance() {
+        double maxLoad = 0.0;
+        for (int i = 0; i < GlobalConfig.getPartitionNum(); i++) {
+            if(maxLoad < partitionTable.get(i).size()){
+                maxLoad = partitionTable.get(i).size();
+            }
         }
-        averageLoad /= GlobalConfig.getPartitionNum();
-        for(HashSet<Edge> edgeSet : partitionTable){
-            sigma += Math.pow(edgeSet.size() - averageLoad, 2);
+        return (double)GlobalConfig.getPartitionNum() / GlobalConfig.getECount() * maxLoad;
+    }
+
+    @Override
+    public void output() throws IOException {
+
+        for(int i = 0 ; i < GlobalConfig.getPartitionNum(); i++)
+        {
+            File file = new File(GlobalConfig.getOutputGraphPath() + "_" + i + ".txt");
+            if(!file.exists()) file.createNewFile();
+
+            FileOutputStream outputStream = new FileOutputStream(file);
+            BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(outputStream));
+
+//            System.out.println(partitionTable.get(i).size());
+            for(Edge edge : partitionTable.get(i)){
+                int src = edge.getSrcVId();
+                int dest = edge.getDestVId();
+                bufferedWriter.write(Integer.toString(src) + "\t" + Integer.toString(dest));
+                bufferedWriter.write("\n");
+            }
+            bufferedWriter.flush();
+            bufferedWriter.close();
         }
-        sigma /= GlobalConfig.getPartitionNum();
-        return Math.sqrt(sigma)/averageLoad;
     }
 
 }

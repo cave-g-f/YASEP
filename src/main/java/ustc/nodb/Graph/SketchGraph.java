@@ -147,4 +147,9 @@ public class SketchGraph implements Graph{
     public ArrayList<Edge> getEdgeList() {
         return edgeList;
     }
+
+    @Override
+    public void clear() {
+
+    }
 }

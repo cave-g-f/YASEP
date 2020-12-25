@@ -1,5 +1,5 @@
 .idea/
 TCMSP.iml
 target/
-src/main/resources/amazon0302.txt
-src/main/resources/amazon0312.txt
+src/main/resources/*.txt
+output/
