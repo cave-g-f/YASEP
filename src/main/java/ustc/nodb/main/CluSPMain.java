@@ -21,6 +21,8 @@ public class CluSPMain {
 
     public static void main(String[] args) throws IOException {
 
+        long beforeUsedMem = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
+
         long startTime = System.currentTimeMillis();
         graph.readGraphFromFile();
 
@@ -79,7 +81,8 @@ public class CluSPMain {
         cluSP.clear();
         System.gc();
 
-        long memoryUsed = Runtime.getRuntime().totalMemory() >> 20;
+        long afterUsedMem = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
+        long memoryUsed = (afterUsedMem - beforeUsedMem) >> 20;
 
         System.out.println("partition time: " + (endTime - startTime) + " ms");
         System.out.println("relative balance load:" + lb);
