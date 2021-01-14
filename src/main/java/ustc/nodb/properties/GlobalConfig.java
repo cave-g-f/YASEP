@@ -7,24 +7,24 @@ import java.util.Properties;
 public class GlobalConfig {
 
     // Graph Sketch Config
-    private static final byte hashNum;
-    private static final short compressionRate;
-    private static final int k;
-    private static final int l;
+    public static final byte hashNum;
+    public static final short compressionRate;
+    public static final int k;
+    public static final int l;
 
     // Graph env config
-    private static final String inputGraphPath;
-    private static final String outputGraphPath;
-    private static final int vCount;
-    private static final int eCount;
+    public static String inputGraphPath;
+    public static final String outputGraphPath;
+    public static int vCount;
+    public static int eCount;
 
     // Graph partition config
-    private static final int partitionNum;
+    public static int partitionNum;
 
     // Graph cluster packing config
-    private static final float alpha;
-    private static final int batchSize;
-    private static final int threads;
+    public static final float alpha;
+    public static int batchSize;
+    public static int threads;
 
     static {
         InputStream inputStream = GlobalConfig.class.getResourceAsStream("/project.properties");

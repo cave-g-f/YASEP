@@ -1,5 +1,8 @@
 package ustc.nodb.main;
 
+import groovyjarjarcommonscli.BasicParser;
+import groovyjarjarcommonscli.CommandLineParser;
+import groovyjarjarcommonscli.Options;
 import ustc.nodb.Graph.Graph;
 import ustc.nodb.Graph.OriginGraph;
 import ustc.nodb.cluster.StreamCluster;
@@ -20,6 +23,16 @@ public class CluSPMain {
     static int roundCnt;
 
     public static void main(String[] args) throws IOException {
+
+        GlobalConfig.vCount = Integer.parseInt(args[0]);
+        GlobalConfig.eCount = Integer.parseInt(args[1]);
+        GlobalConfig.inputGraphPath = args[2];
+        GlobalConfig.threads = Integer.parseInt(args[3]);
+        GlobalConfig.partitionNum = Integer.parseInt(args[4]);
+
+        System.out.println("input graph: " + GlobalConfig.inputGraphPath);
+
+        System.out.println("---------------start-------------");
 
         long beforeUsedMem = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
 
@@ -74,7 +87,7 @@ public class CluSPMain {
         double rf = cluSP.getReplicateFactor();
         double lb = cluSP.getLoadBalance();
 
-        cluSP.output();
+//        cluSP.output();
 
         // free unused mem
         graph.clear();
@@ -84,11 +97,14 @@ public class CluSPMain {
         long afterUsedMem = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
         long memoryUsed = (afterUsedMem - beforeUsedMem) >> 20;
 
+        System.out.println("partition num:" + GlobalConfig.getPartitionNum());
         System.out.println("partition time: " + (endTime - startTime) + " ms");
         System.out.println("relative balance load:" + lb);
         System.out.println("replicate factor: " + rf);
         System.out.println("memory cost: " + memoryUsed + " MB");
         System.out.println("total game round:" + roundCnt);
         System.out.println("cluster game time: " + (gameEndTime - gameStartTime) + " ms");
+
+        System.out.println("---------------end-------------");
     }
 }

@@ -23,8 +23,9 @@ public class OriginGraph implements Graph {
     @Override
     public void readGraphFromFile() {
         try {
-            InputStream inputStream = OriginGraph.class.getResourceAsStream(GlobalConfig.getInputGraphPath());
-            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
+            File file = new File(GlobalConfig.getInputGraphPath());
+            FileReader fileReader = new FileReader(file);
+            BufferedReader bufferedReader = new BufferedReader(fileReader);
 
             String line;
             while ((line = bufferedReader.readLine()) != null) {
