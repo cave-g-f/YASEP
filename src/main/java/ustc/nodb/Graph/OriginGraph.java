@@ -11,13 +11,11 @@ public class OriginGraph implements Graph {
     private final ArrayList<Edge> edgeList;
     private final int vCount;
     private final int eCount;
-    private final int[] degree;
 
     public OriginGraph() {
         this.edgeList = new ArrayList<>();
         this.vCount = GlobalConfig.getVCount();
         this.eCount = GlobalConfig.getECount();
-        degree = new int[GlobalConfig.getVCount()];
     }
 
     @Override
@@ -43,8 +41,6 @@ public class OriginGraph implements Graph {
     @Override
     public void addEdge(int srcVId, int destVId) {
         Edge edge = new Edge(srcVId, destVId, 1);
-        degree[srcVId]++;
-        degree[destVId]++;
         edgeList.add(edge);
     }
 
@@ -61,11 +57,6 @@ public class OriginGraph implements Graph {
     @Override
     public int getECount() {
         return eCount;
-    }
-
-    @Override
-    public int getDegree(int vid) {
-        return degree[vid];
     }
 
     @Override

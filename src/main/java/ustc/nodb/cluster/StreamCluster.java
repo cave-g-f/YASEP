@@ -10,6 +10,7 @@ import java.util.*;
 public class StreamCluster {
 
     private final int[] cluster;
+    private final int[] degree;
     private final HashMap<Integer, Integer> volume;
     // clusterId1 = clusterId2 save inner, otherwise save cut
     private final HashMap<Integer, HashMap<Integer, Integer>> innerAndCutEdge;
@@ -24,6 +25,7 @@ public class StreamCluster {
         this.maxVolume = GlobalConfig.getMaxClusterVolume();
         this.innerAndCutEdge = new HashMap<>();
         this.clusterList = new ArrayList<>();
+        this.degree = new int[graph.getVCount()];
     }
 
     private void combineCluster(int srcVid, int destVid) {
@@ -32,9 +34,9 @@ public class StreamCluster {
         int minVid = (volume.get(cluster[srcVid]) < volume.get(cluster[destVid]) ? srcVid : destVid);
         int maxVid = (srcVid == minVid ? destVid : srcVid);
 
-        if ((volume.get(cluster[maxVid]) + graph.getDegree(minVid)) <= maxVolume) {
-            volume.put(cluster[maxVid], volume.get(cluster[maxVid]) + graph.getDegree(minVid));
-            volume.put(cluster[minVid], volume.get(cluster[minVid]) - graph.getDegree(minVid));
+        if ((volume.get(cluster[maxVid]) + this.degree[minVid]) <= maxVolume) {
+            volume.put(cluster[maxVid], volume.get(cluster[maxVid]) + this.degree[minVid]);
+            volume.put(cluster[minVid], volume.get(cluster[minVid]) - this.degree[minVid]);
             if (volume.get(cluster[minVid]) == 0) volume.remove(cluster[minVid]);
             cluster[minVid] = cluster[maxVid];
         }
@@ -53,12 +55,25 @@ public class StreamCluster {
             if (cluster[src] == 0) cluster[src] = clusterID++;
             if (cluster[dest] == 0) cluster[dest] = clusterID++;
 
+            this.degree[src]++;
+            this.degree[dest]++;
+
             // update volume
             if (!volume.containsKey(cluster[src])) {
-                volume.put(cluster[src], graph.getDegree(src));
+                volume.put(cluster[src], 0);
             }
             if (!volume.containsKey(cluster[dest])) {
-                volume.put(cluster[dest], graph.getDegree(dest));
+                volume.put(cluster[dest], 0);
+            }
+            volume.put(cluster[src], volume.get(cluster[src]) + 1);
+            volume.put(cluster[dest], volume.get(cluster[dest]) + 1);
+
+            if(cluster[src] == cluster[dest] && volume.get(cluster[src]) > maxVolume)
+            {
+                int deleteVId = this.degree[src] > this.degree[dest] ? dest : src;
+                volume.put(cluster[deleteVId], volume.get(cluster[deleteVId]) - this.degree[deleteVId]);
+                cluster[deleteVId] = clusterID++;
+                volume.put(cluster[deleteVId], this.degree[deleteVId]);
             }
 
             // combine cluster

@@ -13,6 +13,7 @@ import ustc.nodb.thread.ClusterGameTask;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.concurrent.*;
 
@@ -24,11 +25,11 @@ public class CluSPMain {
 
     public static void main(String[] args) throws IOException {
 
-        GlobalConfig.vCount = Integer.parseInt(args[0]);
-        GlobalConfig.eCount = Integer.parseInt(args[1]);
-        GlobalConfig.inputGraphPath = args[2];
-        GlobalConfig.threads = Integer.parseInt(args[3]);
-        GlobalConfig.partitionNum = Integer.parseInt(args[4]);
+//        GlobalConfig.vCount = Integer.parseInt(args[0]);
+//        GlobalConfig.eCount = Integer.parseInt(args[1]);
+//        GlobalConfig.inputGraphPath = args[2];
+//        GlobalConfig.threads = Integer.parseInt(args[3]);
+//        GlobalConfig.partitionNum = Integer.parseInt(args[4]);
 
         System.out.println("input graph: " + GlobalConfig.inputGraphPath);
 

@@ -10,6 +10,5 @@ public interface Graph {
     public int getECount();
     public void addEdge(int srcVId, int destVId);
     public ArrayList<Edge> getEdgeList();
-    public int getDegree(int vid);
     public void clear();
 }
