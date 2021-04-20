@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.concurrent.*;
 
 public class CluSPMain {
@@ -30,6 +31,8 @@ public class CluSPMain {
 //        GlobalConfig.inputGraphPath = args[2];
 //        GlobalConfig.threads = Integer.parseInt(args[3]);
 //        GlobalConfig.partitionNum = Integer.parseInt(args[4]);
+//        GlobalConfig.batchSize = Integer.parseInt(args[5]);
+//        GlobalConfig.outputGraphPath = args[6];
 
         System.out.println("input graph: " + GlobalConfig.inputGraphPath);
 
@@ -38,12 +41,11 @@ public class CluSPMain {
         long beforeUsedMem = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
 
         long startTime = System.currentTimeMillis();
-        graph.readGraphFromFile();
 
         StreamCluster streamCluster = new StreamCluster(graph);
         streamCluster.startSteamCluster();
 
-        ArrayList<Integer> clusterList = streamCluster.getClusterList();
+        List<Integer> clusterList = streamCluster.getClusterList();
 
         // parallel game theory
         ExecutorService taskPool = Executors.newFixedThreadPool(GlobalConfig.getThreads());
@@ -87,8 +89,6 @@ public class CluSPMain {
         long endTime = System.currentTimeMillis();
         double rf = cluSP.getReplicateFactor();
         double lb = cluSP.getLoadBalance();
-
-//        cluSP.output();
 
         // free unused mem
         graph.clear();

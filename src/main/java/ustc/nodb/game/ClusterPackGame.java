@@ -5,10 +5,7 @@ import org.javatuples.Pair;
 import ustc.nodb.cluster.StreamCluster;
 import ustc.nodb.properties.GlobalConfig;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Random;
+import java.util.*;
 
 public class ClusterPackGame implements GameStrategy {
 
@@ -16,12 +13,12 @@ public class ClusterPackGame implements GameStrategy {
     private final HashMap<Integer, Integer> cutCostValue; // key: cluster value: cutCost
     private final HashMap<Integer, HashSet<Integer>> clusterNeighbours;
     private final double[] partitionLoad;
-    private final ArrayList<Integer> clusterList;
+    private final List<Integer> clusterList;
     private final StreamCluster streamCluster;
     private double beta = 0.0;
     private int roundCnt;
 
-    public ClusterPackGame(StreamCluster streamCluster, ArrayList<Integer> clusterList) {
+    public ClusterPackGame(StreamCluster streamCluster, List<Integer> clusterList) {
         this.clusterPartition = new HashMap<>();
         this.streamCluster = streamCluster;
         this.clusterList = clusterList;

@@ -3,7 +3,6 @@ package ustc.nodb.cluster;
 import ustc.nodb.Graph.Graph;
 import ustc.nodb.core.Edge;
 import ustc.nodb.properties.GlobalConfig;
-import ustc.nodb.Graph.SketchGraph;
 
 import java.util.*;
 
@@ -15,17 +14,17 @@ public class StreamCluster {
     // clusterId1 = clusterId2 save inner, otherwise save cut
     private final HashMap<Integer, HashMap<Integer, Integer>> innerAndCutEdge;
     private final Graph graph;
-    private final ArrayList<Integer> clusterList;
+    private final List<Integer> clusterList;
     private final int maxVolume;
 
     public StreamCluster(Graph graph) {
-        this.cluster = new int[graph.getVCount()];
+        this.cluster = new int[GlobalConfig.vCount];
         this.graph = graph;
         this.volume = new HashMap<>();
         this.maxVolume = GlobalConfig.getMaxClusterVolume();
         this.innerAndCutEdge = new HashMap<>();
         this.clusterList = new ArrayList<>();
-        this.degree = new int[graph.getVCount()];
+        this.degree = new int[GlobalConfig.vCount];
     }
 
     private void combineCluster(int srcVid, int destVid) {
@@ -46,7 +45,10 @@ public class StreamCluster {
 
         int clusterID = 1;
 
-        for (Edge edge : graph.getEdgeList()) {
+        graph.readGraphFromFile();
+
+        Edge edge;
+        while((edge = graph.readStep()) != null) {
 
             int src = edge.getSrcVId();
             int dest = edge.getDestVId();
@@ -68,12 +70,18 @@ public class StreamCluster {
             volume.put(cluster[src], volume.get(cluster[src]) + 1);
             volume.put(cluster[dest], volume.get(cluster[dest]) + 1);
 
-            if(cluster[src] == cluster[dest] && volume.get(cluster[src]) > maxVolume)
+            if(volume.get(cluster[src]) >= maxVolume)
             {
-                int deleteVId = this.degree[src] > this.degree[dest] ? dest : src;
-                volume.put(cluster[deleteVId], volume.get(cluster[deleteVId]) - this.degree[deleteVId]);
-                cluster[deleteVId] = clusterID++;
-                volume.put(cluster[deleteVId], this.degree[deleteVId]);
+                volume.put(cluster[src], volume.get(cluster[src]) - this.degree[src]);
+                cluster[src] = clusterID++;
+                volume.put(cluster[src], this.degree[src]);
+            }
+
+            if(volume.get(cluster[dest]) >= maxVolume)
+            {
+                volume.put(cluster[dest], volume.get(cluster[dest]) - this.degree[dest]);
+                cluster[dest] = clusterID++;
+                volume.put(cluster[dest], this.degree[dest]);
             }
 
             // combine cluster
@@ -91,14 +99,23 @@ public class StreamCluster {
         for(int i = 0; i < sortList.size(); i++){
             this.clusterList.add(sortList.get(i).getKey());
         }
+        volume.clear();
+        System.gc();
     }
 
     private void computeEdgeInfo() {
         // compute inner and cut edge
-        for (Edge edge : graph.getEdgeList()) {
+        graph.readGraphFromFile();
+
+        HashMap<Integer, HashSet<Integer>> replicateTable = new HashMap<>();
+        Edge edge;
+        double sum = 0.0;
+        while((edge = graph.readStep()) != null){
 
             int src = edge.getSrcVId();
             int dest = edge.getDestVId();
+
+            if(cluster[src] != cluster[dest]) sum++;
 
             if (!innerAndCutEdge.containsKey(cluster[src]))
                 innerAndCutEdge.put(cluster[src], new HashMap<>());
@@ -109,9 +126,11 @@ public class StreamCluster {
             int oldValue = innerAndCutEdge.get(cluster[src]).get(cluster[dest]);
             innerAndCutEdge.get(cluster[src]).put(cluster[dest], oldValue + edge.getWeight());
         }
+
+        System.out.println("cluster rep: " + (sum + GlobalConfig.getVCount()) / GlobalConfig.getVCount());
     }
 
-    public ArrayList<Integer> getClusterList() {
+    public List<Integer> getClusterList() {
         return clusterList;
     }
 

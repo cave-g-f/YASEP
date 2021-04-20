@@ -11,4 +11,5 @@ public interface Graph {
     public void addEdge(int srcVId, int destVId);
     public ArrayList<Edge> getEdgeList();
     public void clear();
+    public Edge readStep();
 }

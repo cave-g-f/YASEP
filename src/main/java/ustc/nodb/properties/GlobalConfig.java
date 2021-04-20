@@ -14,7 +14,7 @@ public class GlobalConfig {
 
     // Graph env config
     public static String inputGraphPath;
-    public static final String outputGraphPath;
+    public static String outputGraphPath;
     public static int vCount;
     public static int eCount;
 
@@ -73,7 +73,7 @@ public class GlobalConfig {
     }
 
     public static int getMaxClusterVolume() {
-        return eCount / getPartitionNum() / 10;
+        return eCount / partitionNum;
     }
 
     public static float getAlpha() {

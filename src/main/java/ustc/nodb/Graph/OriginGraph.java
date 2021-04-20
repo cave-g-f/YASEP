@@ -11,6 +11,7 @@ public class OriginGraph implements Graph {
     private final ArrayList<Edge> edgeList;
     private final int vCount;
     private final int eCount;
+    public BufferedReader bufferedReader;
 
     public OriginGraph() {
         this.edgeList = new ArrayList<>();
@@ -19,20 +20,30 @@ public class OriginGraph implements Graph {
     }
 
     @Override
+    public Edge readStep(){
+        try {
+            String line;
+            if ((line = bufferedReader.readLine()) != null) {
+                if (line.startsWith("#")) return readStep();
+                if (line.isEmpty()) return null;
+                String[] edgeValues = line.split("\t");
+                int srcVid = Integer.parseInt(edgeValues[0]);
+                int destVid = Integer.parseInt(edgeValues[1]);
+                if(srcVid == destVid) return readStep();
+                return new Edge(srcVid, destVid, 1);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    @Override
     public void readGraphFromFile() {
         try {
             File file = new File(GlobalConfig.getInputGraphPath());
             FileReader fileReader = new FileReader(file);
-            BufferedReader bufferedReader = new BufferedReader(fileReader);
-
-            String line;
-            while ((line = bufferedReader.readLine()) != null) {
-                if (line.startsWith("#")) continue;
-                String[] edgeValues = line.split("\t");
-                int srcVid = Integer.parseInt(edgeValues[0]);
-                int destVid = Integer.parseInt(edgeValues[1]);
-                addEdge(srcVid, destVid);
-            }
+            bufferedReader = new BufferedReader(fileReader);
         } catch (IOException e) {
             e.printStackTrace();
         }
