@@ -107,27 +107,45 @@ public class StreamCluster {
         // compute inner and cut edge
         graph.readGraphFromFile();
 
-        HashMap<Integer, HashSet<Integer>> replicateTable = new HashMap<>();
         Edge edge;
-        double sum = 0.0;
         while((edge = graph.readStep()) != null){
 
             int src = edge.getSrcVId();
             int dest = edge.getDestVId();
 
-            if(cluster[src] != cluster[dest]) sum++;
-
             if (!innerAndCutEdge.containsKey(cluster[src]))
                 innerAndCutEdge.put(cluster[src], new HashMap<>());
+
+            if (!innerAndCutEdge.containsKey(cluster[dest]))
+                innerAndCutEdge.put(cluster[dest], new HashMap<>());
 
             if (!innerAndCutEdge.get(cluster[src]).containsKey(cluster[dest]))
                 innerAndCutEdge.get(cluster[src]).put(cluster[dest], 0);
 
             int oldValue = innerAndCutEdge.get(cluster[src]).get(cluster[dest]);
             innerAndCutEdge.get(cluster[src]).put(cluster[dest], oldValue + edge.getWeight());
+
+            if(cluster[src] != cluster[dest])
+            {
+                if(degree[src] < degree[dest])
+                {
+                    if (!innerAndCutEdge.get(cluster[src]).containsKey(cluster[src]))
+                        innerAndCutEdge.get(cluster[src]).put(cluster[src], 0);
+
+                    oldValue = innerAndCutEdge.get(cluster[src]).get(cluster[src]);
+                    innerAndCutEdge.get(cluster[src]).put(cluster[src], oldValue + edge.getWeight());
+                }
+                else
+                {
+                    if (!innerAndCutEdge.get(cluster[dest]).containsKey(cluster[dest]))
+                        innerAndCutEdge.get(cluster[dest]).put(cluster[dest], 0);
+
+                    oldValue = innerAndCutEdge.get(cluster[dest]).get(cluster[dest]);
+                    innerAndCutEdge.get(cluster[dest]).put(cluster[dest], oldValue + edge.getWeight());
+                }
+            }
         }
 
-        System.out.println("cluster rep: " + (sum + GlobalConfig.getVCount()) / GlobalConfig.getVCount());
     }
 
     public List<Integer> getClusterList() {
@@ -161,6 +179,11 @@ public class StreamCluster {
 
     public int getClusterId(int vId) {
         return cluster[vId];
+    }
+
+    public int getDegree(int vID)
+    {
+        return degree[vID];
     }
 
     public HashMap<Integer, Integer> getVolume() {

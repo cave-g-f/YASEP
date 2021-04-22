@@ -62,10 +62,17 @@ public class CluSP implements PartitionStrategy {
                         break;
                     }
                 }
-            } else if (partitionLoad[srcPartition] > partitionLoad[destPartition]) {
+            } else if(srcPartition == destPartition)
+            {
+                edgePartition = srcPartition;
+                destPartition = srcPartition;
+            }
+            else if(streamCluster.getDegree(src) > streamCluster.getDegree(dest))
+            {
                 edgePartition = destPartition;
                 srcPartition = destPartition;
-            } else {
+            }else
+            {
                 edgePartition = srcPartition;
                 destPartition = srcPartition;
             }
@@ -107,7 +114,7 @@ public class CluSP implements PartitionStrategy {
                 maxLoad = partitionLoad[i];
             }
         }
-        return (double) GlobalConfig.getPartitionNum() / GlobalConfig.getECount() * maxLoad;
+        return (double) GlobalConfig.getPartitionNum() * maxLoad / GlobalConfig.getECount();
     }
 
     public void output(Edge edge, int partition) {
