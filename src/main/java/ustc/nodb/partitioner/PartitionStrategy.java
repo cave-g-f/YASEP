@@ -7,5 +7,4 @@ public interface PartitionStrategy {
     public void clear();
     public double getReplicateFactor();
     public double getLoadBalance();
-    public void output() throws IOException;
 }

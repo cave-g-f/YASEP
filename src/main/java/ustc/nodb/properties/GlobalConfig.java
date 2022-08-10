@@ -7,24 +7,27 @@ import java.util.Properties;
 public class GlobalConfig {
 
     // Graph Sketch Config
-    private static final byte hashNum;
-    private static final short compressionRate;
-    private static final int k;
-    private static final int l;
+    public static final byte hashNum;
+    public static final short compressionRate;
+    public static final int k;
+    public static final int l;
 
     // Graph env config
-    private static final String inputGraphPath;
-    private static final String outputGraphPath;
-    private static final int vCount;
-    private static final int eCount;
+    public static String inputGraphPath;
+    public static String outputGraphPath;
+    public static String batchEdgePath;
+    public static int vCount;
+    public static int eCount;
 
     // Graph partition config
-    private static final int partitionNum;
+    public static int partitionNum;
+    public static int clusterNumber;
+    public static double tau;
 
     // Graph cluster packing config
-    private static final float alpha;
-    private static final int batchSize;
-    private static final int threads;
+    public static float alpha;
+    public static int batchSize;
+    public static int threads;
 
     static {
         InputStream inputStream = GlobalConfig.class.getResourceAsStream("/project.properties");
@@ -46,6 +49,9 @@ public class GlobalConfig {
         batchSize = Integer.parseInt(properties.getProperty("batchSize"));
         threads = Integer.parseInt(properties.getProperty("threads"));
         outputGraphPath = properties.getProperty("outputGraphPath");
+        clusterNumber = Integer.parseInt(properties.getProperty("clusterNumber"));
+        batchEdgePath = properties.getProperty("batchEdgePath");
+        tau = Double.parseDouble(properties.getProperty("tau"));
     }
 
     public static byte getHashNum() {
@@ -73,7 +79,11 @@ public class GlobalConfig {
     }
 
     public static int getMaxClusterVolume() {
-        return eCount / getPartitionNum() / 10;
+        return eCount / partitionNum;
+    }
+
+    public static int getClusterNumber(){
+        return clusterNumber;
     }
 
     public static float getAlpha() {

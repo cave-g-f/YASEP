@@ -8,67 +8,49 @@ import java.util.ArrayList;
 
 public class OriginGraph implements Graph {
 
-    private final ArrayList<Edge> edgeList;
     private final int vCount;
-    private final int eCount;
-    private final int[] degree;
+    public BufferedReader bufferedReader;
 
     public OriginGraph() {
-        this.edgeList = new ArrayList<>();
         this.vCount = GlobalConfig.getVCount();
-        this.eCount = GlobalConfig.getECount();
-        degree = new int[GlobalConfig.getVCount()];
+    }
+
+    @Override
+    public Edge readStep(){
+        try {
+            String line;
+            if ((line = bufferedReader.readLine()) != null) {
+                if (line.startsWith("#")) return readStep();
+                if (line.isEmpty()) return null;
+                String[] edgeValues = line.split("\t");
+                int srcVid = Integer.parseInt(edgeValues[0]);
+                int destVid = Integer.parseInt(edgeValues[1]);
+                if(srcVid == destVid) return readStep();
+                return new Edge(srcVid, destVid, 1);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     @Override
     public void readGraphFromFile() {
         try {
-            InputStream inputStream = OriginGraph.class.getResourceAsStream(GlobalConfig.getInputGraphPath());
-            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
-
-            String line;
-            while ((line = bufferedReader.readLine()) != null) {
-                if (line.startsWith("#")) continue;
-                String[] edgeValues = line.split("\t");
-                int srcVid = Integer.parseInt(edgeValues[0]);
-                int destVid = Integer.parseInt(edgeValues[1]);
-                addEdge(srcVid, destVid);
-            }
+            File file = new File(GlobalConfig.getInputGraphPath());
+            FileReader fileReader = new FileReader(file);
+            bufferedReader = new BufferedReader(fileReader);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
     @Override
-    public void addEdge(int srcVId, int destVId) {
-        Edge edge = new Edge(srcVId, destVId, 1);
-        degree[srcVId]++;
-        degree[destVId]++;
-        edgeList.add(edge);
-    }
-
-    @Override
-    public ArrayList<Edge> getEdgeList() {
-        return edgeList;
-    }
-
-    @Override
-    public int getVCount() {
-        return vCount;
-    }
-
-    @Override
-    public int getECount() {
-        return eCount;
-    }
-
-    @Override
-    public int getDegree(int vid) {
-        return degree[vid];
-    }
-
-    @Override
     public void clear() {
-        edgeList.clear();
+        try {
+            this.bufferedReader.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
