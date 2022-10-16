@@ -1,245 +1,231 @@
 package ustc.nodb.cluster;
 
-import com.sun.org.apache.xerces.internal.xinclude.XIncludeNamespaceSupport;
-import org.checkerframework.checker.units.qual.A;
-import org.checkerframework.checker.units.qual.C;
-import org.graalvm.compiler.hotspot.replacements.HashCodeSnippets;
-import ustc.nodb.Graph.Graph;
-import ustc.nodb.IO.BatchFileIO;
-import ustc.nodb.core.Edge;
-import ustc.nodb.game.ClusterPackEdgeGame;
-import ustc.nodb.properties.GlobalConfig;
-
-import java.nio.ByteBuffer;
+import ustc.nodb.Graph.*;
+import ustc.nodb.IO.*;
+import ustc.nodb.properties.*;
+import ustc.nodb.core.*;
 import java.util.*;
 
-public class EdgeStreamCluster {
-
-    private final HashMap<Integer, HashSet<Cluster>> cluster;
+public class EdgeStreamCluster
+{
+    private final HashMap<Integer, Integer> cluster;
     private final HashMap<Integer, Integer> degree;
+    private final HashMap<Integer, Integer> volume;
+    private final HashMap<Integer, Integer> clusterReorder;
     private final HashMap<Integer, HashSet<Integer>> batchVertex;
+    private final HashMap<Integer, HashSet<Integer>> vertexEachCluster;
     private final HashMap<Integer, Integer> batchEdge;
     private final Graph graph;
-    private final ArrayList<Cluster> clusterList;
+    private final ArrayList<Integer> clusterList;
     private final HashMap<Integer, ArrayList<Integer>> writeBuffer;
     private final HashMap<Integer, ArrayList<Integer>> resultBuffer;
     private HashMap<Integer, ArrayList<Integer>> buffer;
     private final int maxVolume;
     private final int batchsize;
     private final BatchFileIO batchFileIO;
-    private int processedEdge;
-
-    public EdgeStreamCluster(Graph graph, BatchFileIO batchFileIO) {
-        this.cluster = new HashMap<>();
+    private final HashMap<Integer, HashSet<Integer>> repVertexEachCluster;
+    private final HashMap<Integer, HashSet<Integer>> repVertexBelongsTo;
+    
+    public EdgeStreamCluster(final Graph graph, final BatchFileIO batchFileIO) {
+        this.cluster = new HashMap<Integer, Integer>();
         this.graph = graph;
+        this.volume = new HashMap<Integer, Integer>();
         this.maxVolume = GlobalConfig.eCount / GlobalConfig.getClusterNumber() + 1;
-        this.clusterList = new ArrayList<>();
-        this.degree = new HashMap<>();
+        this.clusterList = new ArrayList<Integer>();
+        this.degree = new HashMap<Integer, Integer>();
         this.batchsize = GlobalConfig.batchSize;
-        this.writeBuffer  = new HashMap<>();
-        this.resultBuffer  = new HashMap<>();
-        this.buffer = writeBuffer;
+        this.clusterReorder = new HashMap<Integer, Integer>();
+        this.writeBuffer = new HashMap<Integer, ArrayList<Integer>>();
+        this.resultBuffer = new HashMap<Integer, ArrayList<Integer>>();
+        this.buffer = this.writeBuffer;
         this.batchFileIO = batchFileIO;
-        this.batchVertex = new HashMap<>();
-        this.batchEdge = new HashMap<>();
-        this.processedEdge = 0;
+        this.repVertexEachCluster = new HashMap<Integer, HashSet<Integer>>();
+        this.repVertexBelongsTo = new HashMap<Integer, HashSet<Integer>>();
+        this.batchVertex = new HashMap<Integer, HashSet<Integer>>();
+        this.batchEdge = new HashMap<Integer, Integer>();
+        this.vertexEachCluster = new HashMap<Integer, HashSet<Integer>>();
     }
-
-    private int checkNewStateEdge(Edge edge, int nextId){
-        int src = edge.getSrcVId();
-        int dest = edge.getDestVId();
-
-        if(!cluster.containsKey(src) && !cluster.containsKey(dest)) {
-            Cluster c = new Cluster(nextId);
-            c.volume = 1;
-            cluster.put(src, new HashSet<>());
-            cluster.put(dest, new HashSet<>());
-            clusterList.add(c);
-            cluster.get(src).add(c);
-            cluster.get(dest).add(c);
-
-            return nextId;
+    
+    private void combineCluster(final int srcVid, final int destVid) {
+        if (this.volume.get(this.cluster.get(srcVid)) >= this.maxVolume || this.volume.get(this.cluster.get(destVid)) >= this.maxVolume) {
+            return;
         }
-
-        return -1;
-    }
-
-    private int checkReadyStateEdge(Edge edge){
-        int src = edge.getSrcVId();
-        int dest = edge.getDestVId();
-
-        PriorityQueue<Cluster> pq = new PriorityQueue<>((c1, c2) -> c2.volume - c1.volume);
-        pq.addAll(cluster.get(src));
-        pq.addAll(cluster.get(dest));
-
-        while(!pq.isEmpty()){
-            Cluster target = pq.peek();
-            if(target.volume < maxVolume){
-
-                if(!cluster.containsKey(src)) cluster.put(src, new HashSet<>());
-                if(!cluster.containsKey(dest)) cluster.put(dest, new HashSet<>());
-
-                // assign edge
-                cluster.get(src).add(target);
-                cluster.get(dest).add(target);
-                target.volume += 1;
-
-                return target.id;
-            }
-            pq.remove(target);
-        }
-
-        return -1;
-    }
-
-    private int checkDriftStateEdge(Edge edge, int nextId){
-        int src = edge.getSrcVId();
-        int dest = edge.getDestVId();
-
-        if(!cluster.containsKey(src)) cluster.put(src, new HashSet<>());
-        if(!cluster.containsKey(dest)) cluster.put(dest, new HashSet<>());
-
-        Cluster c = new Cluster(nextId);
-        c.volume = 1;
-        cluster.put(src, new HashSet<>());
-        cluster.put(dest, new HashSet<>());
-        clusterList.add(c);
-        cluster.get(src).add(c);
-        cluster.get(dest).add(c);
-
-        return nextId;
-    }
-
-    private void persistResult(int target, Edge edge){
-
-        int src = edge.getSrcVId();
-        int dest = edge.getDestVId();
-
-        // put edge into write buffer, store format (src dest clusterID)
-        int batchID = target / batchsize;
-        if (!batchVertex.containsKey(batchID)){
-            batchVertex.put(batchID, new HashSet<>());
-        }
-        if (!batchEdge.containsKey(batchID)){
-            batchEdge.put(batchID, 0);
-        }
-        if (!buffer.containsKey(batchID)){
-            buffer.put(batchID, new ArrayList<Integer>());
-        }
-        buffer.get(batchID).add(src);
-        buffer.get(batchID).add(dest);
-        buffer.get(batchID).add(target);
-        batchVertex.get(batchID).add(src);
-        batchVertex.get(batchID).add(dest);
-        batchEdge.put(batchID, batchEdge.get(batchID) + 1);
-        processedEdge += 1;
-        if (processedEdge % GlobalConfig.vCount == 0){
-            processedEdge = 0;
-
-            while(!this.batchFileIO.isDone());
-            this.batchFileIO.outputFilesAsyn(buffer);
-
-            if(buffer == writeBuffer) {
-                resultBuffer.clear();
-                buffer = resultBuffer;
+        final int minVid = (this.volume.get(this.cluster.get(srcVid)) < this.volume.get(this.cluster.get(destVid))) ? srcVid : destVid;
+        final int maxVid = (srcVid == minVid) ? destVid : srcVid;
+        if (this.volume.get(this.cluster.get(maxVid)) + 1 <= this.maxVolume) {
+            this.volume.put(this.cluster.get(maxVid), this.volume.get(this.cluster.get(maxVid)) + 1);
+            if (this.volume.get(this.cluster.get(minVid)) == 0) {
+                this.volume.remove(this.cluster.get(minVid));
             }
             else {
-                writeBuffer.clear();
-                buffer = writeBuffer;
+                if (!this.repVertexBelongsTo.containsKey(minVid)) {
+                    this.repVertexBelongsTo.put(minVid, new HashSet<Integer>());
+                }
+                if (!this.repVertexEachCluster.containsKey(this.cluster.get(minVid))) {
+                    this.repVertexEachCluster.put(this.cluster.get(minVid), new HashSet<Integer>());
+                }
+                if (!this.repVertexEachCluster.containsKey(this.cluster.get(maxVid))) {
+                    this.repVertexEachCluster.put(this.cluster.get(maxVid), new HashSet<Integer>());
+                }
+                this.repVertexEachCluster.get(this.cluster.get(minVid)).add(minVid);
+                this.repVertexEachCluster.get(this.cluster.get(maxVid)).add(minVid);
+                this.repVertexBelongsTo.get(minVid).add(this.cluster.get(minVid));
+                this.repVertexBelongsTo.get(minVid).add(this.cluster.get(maxVid));
             }
+            this.cluster.put(minVid, this.cluster.get(maxVid));
         }
-
     }
-
+    
     public void startSteamCluster() {
-
-        int nextClusterID = 0;
+        int nextClusterID = 1;
         int clusterNum = 0;
-
-        graph.readGraphFromFile();
-
+        int processedEdge = 0;
+        this.graph.readGraphFromFile();
         Edge edge;
-        while ((edge = graph.readStep()) != null) {
-
-            int target = 0;
-
-            if((target = checkNewStateEdge(edge, nextClusterID)) != -1){
-                persistResult(target, edge);
-                nextClusterID++;
-                continue;
+        while ((edge = this.graph.readStep()) != null) {
+            final int src = edge.getSrcVId();
+            final int dest = edge.getDestVId();
+            if (!this.cluster.containsKey(src)) {
+                this.cluster.put(src, nextClusterID++);
             }
-
-            if((target = checkReadyStateEdge(edge)) != -1){
-                persistResult(target, edge);
-                continue;
+            if (!this.cluster.containsKey(dest)) {
+                this.cluster.put(dest, nextClusterID++);
             }
-
-            if((target = checkDriftStateEdge(edge, nextClusterID)) != -1){
-                persistResult(target, edge);
-                nextClusterID++;
-                continue;
+            if (!this.volume.containsKey(this.cluster.get(src))) {
+                this.volume.put(this.cluster.get(src), 0);
             }
-
+            if (!this.volume.containsKey(this.cluster.get(dest))) {
+                this.volume.put(this.cluster.get(dest), 0);
+            }
+            if (this.volume.get(this.cluster.get(src)) >= this.maxVolume) {
+                if (!this.repVertexBelongsTo.containsKey(src)) {
+                    this.repVertexBelongsTo.put(src, new HashSet<Integer>());
+                }
+                if (!this.repVertexEachCluster.containsKey(this.cluster.get(src))) {
+                    this.repVertexEachCluster.put(this.cluster.get(src), new HashSet<Integer>());
+                }
+                this.repVertexEachCluster.get(this.cluster.get(src)).add(src);
+                this.repVertexBelongsTo.get(src).add(this.cluster.get(src));
+                this.cluster.put(src, nextClusterID++);
+                this.volume.put(this.cluster.get(src), 0);
+            }
+            if (this.volume.get(this.cluster.get(dest)) >= this.maxVolume) {
+                if (!this.repVertexBelongsTo.containsKey(dest)) {
+                    this.repVertexBelongsTo.put(dest, new HashSet<Integer>());
+                }
+                if (!this.repVertexEachCluster.containsKey(this.cluster.get(dest))) {
+                    this.repVertexEachCluster.put(this.cluster.get(dest), new HashSet<Integer>());
+                }
+                this.repVertexEachCluster.get(this.cluster.get(dest)).add(dest);
+                this.repVertexBelongsTo.get(dest).add(this.cluster.get(dest));
+                this.cluster.put(dest, nextClusterID++);
+                this.volume.put(this.cluster.get(dest), 0);
+            }
+            this.combineCluster(src, dest);
+            if (!this.vertexEachCluster.containsKey(this.cluster.get(src))) {
+                this.vertexEachCluster.put(this.cluster.get(src), new HashSet<Integer>());
+                this.vertexEachCluster.get(this.cluster.get(src)).add(src);
+                this.vertexEachCluster.get(this.cluster.get(src)).add(dest);
+            }
+            if (!this.clusterReorder.containsKey(this.cluster.get(src))) {
+                this.clusterList.add(this.cluster.get(src));
+                this.clusterReorder.put(this.cluster.get(src), clusterNum++);
+            }
+            final int batchID = this.clusterReorder.get(this.cluster.get(src)) / this.batchsize;
+            if (!this.batchVertex.containsKey(batchID)) {
+                this.batchVertex.put(batchID, new HashSet<Integer>());
+            }
+            if (!this.batchEdge.containsKey(batchID)) {
+                this.batchEdge.put(batchID, 0);
+            }
+            if (!this.buffer.containsKey(batchID)) {
+                this.buffer.put(batchID, new ArrayList<Integer>());
+            }
+            this.buffer.get(batchID).add(src);
+            this.buffer.get(batchID).add(dest);
+            this.buffer.get(batchID).add(this.cluster.get(src));
+            this.batchVertex.get(batchID).add(src);
+            this.batchVertex.get(batchID).add(dest);
+            this.batchEdge.put(batchID, this.batchEdge.get(batchID) + 1);
+            if (++processedEdge % GlobalConfig.vCount == 0) {
+                processedEdge = 0;
+                while (!this.batchFileIO.isDone()) {}
+                this.batchFileIO.outputFilesAsyn((HashMap)this.buffer);
+                if (this.buffer == this.writeBuffer) {
+                    this.resultBuffer.clear();
+                    this.buffer = this.resultBuffer;
+                }
+                else {
+                    this.writeBuffer.clear();
+                    this.buffer = this.writeBuffer;
+                }
+            }
         }
-        if (processedEdge != 0){
+        if (processedEdge != 0) {
             processedEdge = 0;
-            while(!this.batchFileIO.isDone());
-            this.batchFileIO.outputFilesAsyn(buffer);
+            while (!this.batchFileIO.isDone()) {}
+            this.batchFileIO.outputFilesAsyn((HashMap)this.buffer);
         }
-
-        // update rep vertex
-        for(Map.Entry<Integer, HashSet<Cluster>> v2c : cluster.entrySet()){
-            if(v2c.getValue().size() <= 1) continue;
-            for(Cluster c : v2c.getValue()){
-                c.repVertex.add(v2c.getKey());
-            }
-        }
-
-        showInfo();
         this.batchFileIO.closeOutputAsyn();
-        this.batchFileIO.checkBatchFile();
     }
-
+    
     private void showInfo() {
-
         int totalVolume = 0;
-        for (int i = 0; i < this.clusterList.size(); i++) {
-            totalVolume += clusterList.get(i).volume;
+        for (int i = 0; i < this.clusterList.size(); ++i) {
+            System.out.println("cluster size: " + this.volume.get(this.clusterList.get(i)).toString());
+            totalVolume += this.volume.get(this.clusterList.get(i));
         }
         System.out.println("total volume: " + totalVolume);
-        System.out.println("total cluster: " + clusterList.size());
-
-        // check rep statistic
+        System.out.println("total cluster: " + this.volume.size());
         int totalRep = 0;
         int totalRepInv = 0;
-        for(Cluster c : clusterList){
-            totalRep += c.repVertex.size();
+        for (final Map.Entry<Integer, HashSet<Integer>> entry : this.repVertexEachCluster.entrySet()) {
+            totalRep += entry.getValue().size();
         }
-        System.out.println("totalRep: " + totalRep);
-
-        // check batch info
+        for (final Map.Entry<Integer, HashSet<Integer>> entry : this.repVertexBelongsTo.entrySet()) {
+            totalRepInv += entry.getValue().size();
+        }
+        System.out.println("totalRep: " + totalRep + " totalRepInv: " + totalRepInv);
+        System.out.println("the number of replicated vertex: " + this.repVertexBelongsTo.size());
         int totalBatchEdge = 0;
-        for(Map.Entry<Integer, Integer> entry : this.batchEdge.entrySet()){
-            totalBatchEdge += entry.getValue();
+        for (final Map.Entry<Integer, Integer> entry2 : this.batchEdge.entrySet()) {
+            totalBatchEdge += entry2.getValue();
         }
         System.out.println("batch edge sum: " + totalBatchEdge);
-
     }
-
-    public int getBatchVertex(int batchID){
-        return batchVertex.get(batchID).size();
+    
+    public int getVolume(final int clusterID) {
+        return this.volume.get(clusterID);
     }
-
-    public int getBatchEdge(int batchID){
-        return batchEdge.get(batchID);
+    
+    public HashSet<Integer> getRepVertexEachCluster(final int clusterID) {
+        if (!this.repVertexEachCluster.containsKey(clusterID)) {
+            return new HashSet<Integer>();
+        }
+        return this.repVertexEachCluster.get(clusterID);
     }
-
-
-    public ArrayList<Cluster> getClusterList(){
+    
+    public HashSet<Integer> getRepVertexBelongsTo(final int vertexID) {
+        return this.repVertexBelongsTo.get(vertexID);
+    }
+    
+    public int getBatchVertex(final int batchID) {
+        return this.batchVertex.get(batchID).size();
+    }
+    
+    public int getBatchEdge(final int batchID) {
+        return this.batchEdge.get(batchID);
+    }
+    
+    public int getClusterVertex(final int clusterID) {
+        return this.vertexEachCluster.get(clusterID).size();
+    }
+    
+    public ArrayList<Integer> getClusterList() {
         return this.clusterList;
     }
-
-    public int getBatchNum(){
+    
+    public int getBatchNum() {
         return this.batchEdge.size();
     }
 }

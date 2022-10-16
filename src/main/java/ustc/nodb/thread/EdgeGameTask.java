@@ -1,6 +1,5 @@
 package ustc.nodb.thread;
 
-import org.checkerframework.checker.units.qual.A;
 import ustc.nodb.Graph.Graph;
 import ustc.nodb.core.Edge;
 import ustc.nodb.game.EdgePartitionGame;

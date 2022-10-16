@@ -1,11 +1,12 @@
 package ustc.nodb.Graph;
 
-import ustc.nodb.core.Edge;
+import ustc.nodb.core.*;
 
-import java.util.ArrayList;
-
-public interface Graph {
-    public void readGraphFromFile();
-    public void clear();
-    public Edge readStep();
+public interface Graph
+{
+    void readGraphFromFile();
+    
+    void clear();
+    
+    Edge readStep();
 }
