@@ -37,7 +37,7 @@ public class ClusterPackEdgeGame implements GameStrategy {
                     partition = i;
                 }
             }
-            clusterPartition.put(c., partition);
+            clusterPartition.put(c, partition);
             partitionLoad[partition] += edgeStreamCluster.getVolume(clusterId);
         }
     }
